@@ -235,6 +235,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Severe fall detected. Are you okay?'**
   String get alertFallBody;
+
+  /// No description provided for @disclaimerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'⚠️ LEGAL DISCLAIMER & PRIVACY'**
+  String get disclaimerTitle;
+
+  /// No description provided for @disclaimerText.
+  ///
+  /// In en, this message translates to:
+  /// **'This app is a support tool and DOES NOT replace professional emergency services (112, 911).\n\nPRIVACY: Oksigenia DOES NOT collect personal data. Your location and contacts remain exclusively on your device.\n\nFunctionality depends on device health, battery, and coverage. Use at your own risk.'**
+  String get disclaimerText;
+
+  /// No description provided for @btnAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'ACCEPT'**
+  String get btnAccept;
+
+  /// No description provided for @btnDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'EXIT'**
+  String get btnDecline;
+
+  /// No description provided for @menuPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy & Legal'**
+  String get menuPrivacy;
+
+  /// No description provided for @privacyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms & Privacy'**
+  String get privacyTitle;
+
+  /// No description provided for @privacyPolicyContent.
+  ///
+  /// In en, this message translates to:
+  /// **'PRIVACY POLICY & TERMS OF USE\n\n1. NO DATA COLLECTION\nOksigenia SOS is built on a privacy-by-design principle. The application operates entirely locally. We do not upload your data to any cloud, do not use tracking servers, and do not sell your information to third parties. Your emergency contacts and location history remain strictly on your device.\n\n2. PERMISSION USAGE\n- Location: Used strictly to retrieve GPS coordinates in the event of an impact or manual activation. No background tracking occurs when monitoring is disabled.\n- SMS: Used exclusively to send the alert message to your defined contact. The app does not read your personal messages.\n\n3. LIMITATION OF LIABILITY\nThis application is provided \'as is\', without warranty of any kind. Oksigenia and its developers are not liable for damages, injuries, or death resulting from software failure, including but not limited to: lack of cellular coverage, battery drain, operating system failures, or GPS hardware errors.\n\nThis tool is a safety supplement and should never be considered an infallible substitute for professional emergency services.'**
+  String get privacyPolicyContent;
 }
 
 class _AppLocalizationsDelegate

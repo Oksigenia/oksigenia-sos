@@ -1,7 +1,7 @@
 import 'dart:io'; 
 import 'dart:math' as math; 
 import 'dart:async'; 
-import 'dart:convert'; // Para leer JSON remoto
+import 'dart:convert'; 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; 
 import 'package:geolocator/geolocator.dart';
@@ -12,20 +12,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sensors_plus/sensors_plus.dart'; 
 import 'package:permission_handler/permission_handler.dart'; 
 import 'package:vibration/vibration.dart'; 
-import 'package:http/http.dart' as http; // El cartero para el Kill Switch
+import 'package:http/http.dart' as http; 
 import 'l10n/app_localizations.dart';
 
-// --- CONFIGURACIÓN DE SABORES (FLAVORS) ---
+// --- CONFIGURACIÓN DE SABORES ---
 enum AppFlavor { community, store }
 
 class AppConfig {
-  // Cuando compiles para la Store, cambia esto manualmente si no usas entry-points separados
   static AppFlavor flavor = AppFlavor.community; 
-  
   static bool get isCommunity => flavor == AppFlavor.community;
   static bool get isStore => flavor == AppFlavor.store;
-  
-  // URL DE CONTROL REMOTO (KILL SWITCH)
   static const String remoteStatusUrl = "https://oksigenia.com/app_status.json";
 }
 
@@ -95,26 +91,21 @@ class _SOSScreenState extends State<SOSScreen> {
   bool _isLoading = false;
   String? _customStatusMessage;
 
-  // Canal Nativo (Kotlin)
   static const platform = MethodChannel('com.oksigenia.oksigenia_sos/sms');
 
-  // Sensores y Lógica
   bool _isMonitoring = false; 
   StreamSubscription? _accelerometerSubscription; 
   bool _isAlertActive = false; 
   Timer? _countdownTimer; 
   Position? _cachedPosition; 
   double _currentForce = 0.0; 
-  
-  // UMBRAL DE IMPACTO (Ajustado a 30G para uso real)
   final double _impactThreshold = 30.0; 
 
   @override
   void initState() {
     super.initState();
-    // 1. Verificar mensajes remotos (Kill Switch)
     _verificarMensajesRemotos();
-    // 2. Mostrar Disclaimer Legal si no se ha aceptado
+    // Añadimos delay para asegurar que el contexto de localización esté listo
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkDisclaimer());
   }
 
@@ -125,48 +116,25 @@ class _SOSScreenState extends State<SOSScreen> {
     super.dispose();
   }
 
-  // --- DISCLAIMER LEGAL ---
+  // --- DISCLAIMER LEGAL MULTI-IDIOMA ---
   Future<void> _checkDisclaimer() async {
     final prefs = await SharedPreferences.getInstance();
     final bool accepted = prefs.getBool('disclaimer_accepted') ?? false;
 
     if (!accepted && mounted) {
-      String title = "⚠️ AVISO LEGAL / DISCLAIMER";
-      String content = """
-Esta aplicación es una herramienta de ayuda y NO sustituye a los servicios de emergencia profesionales (112, 911).
-
-El funcionamiento depende del estado del dispositivo, batería, cobertura GPS/SMS y permisos.
-
-Oksigenia no se hace responsable de fallos en el envío o errores de localización.
-
-Úsala bajo tu propia responsabilidad.
-      """;
-
-      // Versión Inglés simple si el móvil está en inglés
-      if (Localizations.localeOf(context).languageCode == 'en') {
-        title = "⚠️ LIABILITY WAIVER";
-        content = """
-This app is a support tool and DOES NOT replace professional emergency services (112, 911).
-
-Functionality depends on device health, battery, GPS/SMS coverage, and permissions.
-
-Oksigenia is not liable for transmission failures or consequences resulting from use.
-
-Use at your own risk.
-        """;
-      }
-
+      final l10n = AppLocalizations.of(context)!;
+      
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) => AlertDialog(
           backgroundColor: Colors.grey.shade900,
-          title: Text(title, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
-          content: SingleChildScrollView(child: Text(content, style: const TextStyle(color: Colors.white))),
+          title: Text(l10n.disclaimerTitle, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(child: Text(l10n.disclaimerText, style: const TextStyle(color: Colors.white))),
           actions: [
             TextButton(
-              onPressed: () => SystemNavigator.pop(), // Cierra la app
-              child: const Text("SALIR / EXIT", style: TextStyle(color: Colors.grey)),
+              onPressed: () => SystemNavigator.pop(), 
+              child: Text(l10n.btnDecline, style: const TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -174,7 +142,7 @@ Use at your own risk.
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-              child: const Text("ACEPTAR / ACCEPT", style: TextStyle(color: Colors.white)),
+              child: Text(l10n.btnAccept, style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -198,9 +166,7 @@ Use at your own risk.
           }
         }
       }
-    } catch (e) {
-      // Sin internet, ignoramos
-    }
+    } catch (e) { }
   }
 
   void _mostrarAlertaRemota(String? title, String? body, bool isKillSwitch, int version) {
@@ -226,7 +192,7 @@ Use at your own risk.
     );
   }
 
-  // --- ACTIVAR MONITORIZACIÓN ---
+  // --- MONITORIZACIÓN ---
   Future<void> _toggleMonitoring(bool value) async {
     final l10n = AppLocalizations.of(context)!;
 
@@ -292,17 +258,12 @@ Use at your own risk.
     }
   }
 
-  // --- ALERTA Y CUENTA ATRÁS ---
+  // --- ALERTA ---
   void _triggerFallAlert() async {
     setState(() { _isAlertActive = true; });
-
     _iniciarGPSEnSegundoPlano(); 
-
     int secondsRemaining = 60; 
-    
-    if (await Vibration.hasVibrator() ?? false) {
-       Vibration.vibrate(duration: 1000); 
-    }
+    if (await Vibration.hasVibrator() ?? false) Vibration.vibrate(duration: 1000); 
 
     if (!mounted) return;
 
@@ -313,9 +274,7 @@ Use at your own risk.
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             _countdownTimer ??= Timer.periodic(const Duration(seconds: 1), (timer) {
-              
               Vibration.vibrate(duration: 500);
-
               if (secondsRemaining > 0) {
                 setStateDialog(() { secondsRemaining--; });
               } else {
@@ -355,10 +314,7 @@ Use at your own risk.
                       children: [
                         Icon(gpsLocked ? Icons.gps_fixed : Icons.gps_not_fixed, color: Colors.white, size: 16),
                         const SizedBox(width: 8),
-                        Text(
-                          gpsLocked ? "UBICACIÓN FIJADA" : "Buscando satélites...", 
-                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)
-                        ),
+                        Text(gpsLocked ? "UBICACIÓN FIJADA" : "Buscando satélites...", style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -412,12 +368,9 @@ Use at your own risk.
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) return; 
       _cachedPosition = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 55), 
+        desiredAccuracy: LocationAccuracy.high, timeLimit: const Duration(seconds: 55), 
       );
-    } catch (e) {
-      debugPrint("GPS Background Error: $e");
-    }
+    } catch (e) { debugPrint("GPS Background Error: $e"); }
   }
 
   Future<void> _activarProtocoloSOS({bool autoMode = false}) async {
@@ -426,9 +379,7 @@ Use at your own risk.
     final String? contactoEmergencia = prefs.getString('sos_contact');
 
     if (contactoEmergencia == null || contactoEmergencia.isEmpty) {
-      if (mounted && !autoMode) {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const ConfigScreen()));
-      }
+      if (mounted && !autoMode) Navigator.push(context, MaterialPageRoute(builder: (context) => const ConfigScreen()));
       return; 
     }
 
@@ -454,10 +405,7 @@ Use at your own risk.
         if (permission == LocationPermission.denied) {
            if (!autoMode) permission = await Geolocator.requestPermission();
         }
-        finalPosition = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-          timeLimit: const Duration(seconds: 15), 
-        );
+        finalPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high, timeLimit: const Duration(seconds: 15));
       }
       String link = "http://maps.google.com/?q=${finalPosition!.latitude},${finalPosition.longitude}";
       mensajeFinal = l10n.panicMessage(link);
@@ -468,18 +416,13 @@ Use at your own risk.
     try {
       if (Platform.isAndroid && autoMode) {
         try {
-          await platform.invokeMethod('sendBackgroundSms', {
-            'phone': contactoEmergencia,
-            'msg': mensajeFinal,
-          });
+          await platform.invokeMethod('sendBackgroundSms', {'phone': contactoEmergencia, 'msg': mensajeFinal});
           if (mounted) setState(() { _isLoading = false; _customStatusMessage = "⚡ AUTO-SOS SENT (NATIVE) ⚡"; });
         } on PlatformException catch (e) {
            setState(() { _isLoading = false; _customStatusMessage = "❌ ERROR NATIVO: ${e.message}"; });
         }
       } else {
-        final Uri smsUri = Uri(
-          scheme: 'sms', path: contactoEmergencia, queryParameters: <String, String>{ 'body': mensajeFinal },
-        );
+        final Uri smsUri = Uri(scheme: 'sms', path: contactoEmergencia, queryParameters: <String, String>{ 'body': mensajeFinal });
         if (await canLaunchUrl(smsUri)) {
           await launchUrl(smsUri, mode: LaunchMode.platformDefault);
           setState(() { _isLoading = false; _customStatusMessage = l10n.statusSent; });
@@ -488,9 +431,7 @@ Use at your own risk.
         }
       }
     } catch (e) {
-      final Uri smsUri = Uri(
-          scheme: 'sms', path: contactoEmergencia, queryParameters: <String, String>{ 'body': mensajeFinal },
-      );
+      final Uri smsUri = Uri(scheme: 'sms', path: contactoEmergencia, queryParameters: <String, String>{ 'body': mensajeFinal });
       await launchUrl(smsUri, mode: LaunchMode.platformDefault);
       setState(() { _isLoading = false; _customStatusMessage = l10n.statusError("SMS ERROR"); });
     }
@@ -508,9 +449,7 @@ Use at your own risk.
   }
 
   @override
-  Widget build(BuildContext context) {
-    return _buildScaffold(context);
-  }
+  Widget build(BuildContext context) { return _buildScaffold(context); }
 
   Widget _buildScaffold(BuildContext context) {
      final l10n = AppLocalizations.of(context);
@@ -578,6 +517,14 @@ Use at your own risk.
             ),
             const Divider(color: Colors.white10),
             ListTile(
+              leading: const Icon(Icons.privacy_tip, color: Colors.blueGrey),
+              title: Text(l10n.menuPrivacy, style: const TextStyle(color: Colors.white)),
+              onTap: () {
+                 Navigator.pop(context);
+                 Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacyScreen()));
+              },
+            ),
+            ListTile(
               leading: const FaIcon(FontAwesomeIcons.globe, color: Colors.blueAccent),
               title: Text(l10n.menuWeb, style: const TextStyle(color: Colors.white)),
               onTap: () => _abrirLink('https://oksigenia.com'),
@@ -601,7 +548,7 @@ Use at your own risk.
              const SizedBox(height: 30),
             const Padding(
               padding: EdgeInsets.all(20.0),
-              child: Text("© 2026 Oksigenia v2.0 RC", style: TextStyle(color: Colors.white24), textAlign: TextAlign.center),
+              child: Text("© 2026 Oksigenia v2.1", style: TextStyle(color: Colors.white24), textAlign: TextAlign.center),
             ),
           ],
         ),
@@ -708,9 +655,7 @@ Use at your own risk.
   }
 }
 
-// -----------------------------------------------------------------------------
 // PANTALLA DE CONFIGURACIÓN
-// -----------------------------------------------------------------------------
 class ConfigScreen extends StatefulWidget {
   const ConfigScreen({super.key});
   @override
@@ -797,8 +742,6 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   child: _isSaving ? const CircularProgressIndicator(color: Colors.white) : Text(l10n.settingsSave, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
               ),
-              
-              // --- ZONA FUNCIONES AVANZADAS ---
               const SizedBox(height: 40),
               const Divider(color: Colors.white24),
               ListTile(
@@ -811,28 +754,19 @@ class _ConfigScreenState extends State<ConfigScreen> {
                     context: context,
                     builder: (ctx) => AlertDialog(
                       backgroundColor: Colors.grey.shade900,
-                      title: Text(
-                        AppConfig.isCommunity ? "💎 Oksigenia Community" : "🔒 Oksigenia Pro",
-                        style: const TextStyle(color: Colors.white)
-                      ),
+                      title: Text(AppConfig.isCommunity ? "💎 Oksigenia Community" : "🔒 Oksigenia Pro", style: const TextStyle(color: Colors.white)),
                       content: Text(
                         AppConfig.isCommunity 
-                          ? "Esta es la versión COMMUNITY (Libre).\n\nTodas las funciones están desbloqueadas gracias al código abierto.\n\nSi te es útil, considera una donación voluntaria para mantener los servidores (¡aunque no tenemos!)."
+                          ? "Esta es la versión COMMUNITY (Libre).\n\nTodas las funciones están desbloqueadas gracias al código abierto.\n\nSi te es útil, considera una donación voluntaria."
                           : "Suscríbete a la versión PRO para desbloquear múltiples contactos y seguimiento en tiempo real.",
                         style: const TextStyle(color: Colors.white70),
                       ),
                       actions: [
                         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cerrar")),
                         if (AppConfig.isCommunity)
-                          ElevatedButton(
-                            onPressed: () => _abrirWebDonar(), 
-                            child: const Text("Invitar a un café ☕"),
-                          ),
+                          ElevatedButton(onPressed: () => _abrirWebDonar(), child: const Text("Invitar a un café ☕")),
                         if (AppConfig.isStore)
-                          ElevatedButton(
-                            onPressed: () {}, 
-                            child: const Text("Suscribirse"),
-                          ),
+                          ElevatedButton(onPressed: () {}, child: const Text("Suscribirse")),
                       ],
                     ),
                   );
@@ -844,9 +778,26 @@ class _ConfigScreenState extends State<ConfigScreen> {
       ),
     );
   }
-
   void _abrirWebDonar() async {
     final Uri uri = Uri.parse("https://oksigenia.com/donar");
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) debugPrint("Error $uri");
+  }
+}
+
+// PANTALLA DE PRIVACIDAD Y LEGAL
+class PrivacyScreen extends StatelessWidget {
+  const PrivacyScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(title: Text(l10n.privacyTitle, style: const TextStyle(color: Colors.white)), backgroundColor: Colors.transparent, iconTheme: const IconThemeData(color: Colors.white)),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Text(l10n.privacyPolicyContent, style: const TextStyle(color: Colors.white70, fontSize: 16)),
+      ),
+    );
   }
 }

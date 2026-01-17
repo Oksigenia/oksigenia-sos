@@ -77,4 +77,27 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get alertFallBody => 'Queda grave detectada. Você está bem?';
+
+  @override
+  String get disclaimerTitle => '⚠️ AVISO LEGAL E PRIVACIDADE';
+
+  @override
+  String get disclaimerText =>
+      'Este aplicativo é uma ferramenta de apoio e NÃO substitui os serviços de emergência profissionais (112, 911).\n\nPRIVACIDADE: Oksigenia NÃO coleta dados pessoais. Sua localização e contatos permanecem exclusivamente no seu dispositivo.\n\nO funcionamento depende do estado do dispositivo, bateria e cobertura. Use por sua conta e risco.';
+
+  @override
+  String get btnAccept => 'ACEITAR';
+
+  @override
+  String get btnDecline => 'SAIR';
+
+  @override
+  String get menuPrivacy => 'Privacidade e Legal';
+
+  @override
+  String get privacyTitle => 'Termos e Privacidade';
+
+  @override
+  String get privacyPolicyContent =>
+      'POLÍTICA DE PRIVACIDADE E TERMOS DE USO\n\n1. SEM COLETA DE DADOS\nOksigenia SOS foi projetado com privacidade desde a conceção. O aplicativo opera inteiramente de forma local. Não enviamos seus dados para nenhuma nuvem, não usamos servidores de rastreamento e não vendemos suas informações. Seus contatos de emergência permanecem estritamente no seu dispositivo.\n\n2. USO DE PERMISSÕES\n- Localização: Usada estritamente para obter coordenadas GPS em caso de impacto ou ativação manual. Nenhum rastreamento em segundo plano ocorre quando o monitoramento está desativado.\n- SMS: Usado exclusivamente para enviar a mensagem de alerta ao seu contato definido. O aplicativo não lê suas mensagens pessoais.\n\n3. LIMITAÇÃO DE RESPONSABILIDADE\nEste aplicativo é fornecido \'como está\', sem garantia de qualquer tipo. A Oksigenia e seus desenvolvedores não são responsáveis por danos ou consequências resultantes de falhas no software, incluindo: falta de cobertura celular, bateria descarregada ou erros de GPS.\n\nEsta ferramenta é um complemento de segurança e nunca deve ser considerada um substituto infalível para serviços de emergência profissionais.';
 }
