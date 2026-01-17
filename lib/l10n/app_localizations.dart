@@ -211,6 +211,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'⚠️ Configure a contact first!'**
   String get errorNoContact;
+
+  /// No description provided for @autoModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fall Detection'**
+  String get autoModeLabel;
+
+  /// No description provided for @autoModeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Monitors severe impacts.'**
+  String get autoModeDescription;
+
+  /// No description provided for @alertFallDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'IMPACT DETECTED!'**
+  String get alertFallDetected;
+
+  /// No description provided for @alertFallBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Severe fall detected. Are you okay?'**
+  String get alertFallBody;
 }
 
 class _AppLocalizationsDelegate

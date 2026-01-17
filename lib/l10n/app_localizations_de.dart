@@ -65,4 +65,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get errorNoContact => '⚠️ Bitte erst Kontakt konfigurieren!';
+
+  @override
+  String get autoModeLabel => 'Sturzerkennung';
+
+  @override
+  String get autoModeDescription => 'Überwacht starke Aufpralle.';
+
+  @override
+  String get alertFallDetected => 'AUFPRALL ERKANNT!';
+
+  @override
+  String get alertFallBody => 'Schwerer Sturz erkannt. Alles okay?';
 }

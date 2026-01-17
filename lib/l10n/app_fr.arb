@@ -16,5 +16,9 @@
     "settingsHint": "Ex: +33 6 12 34 56 78",
     "settingsSave": "ENREGISTRER",
     "settingsSavedMsg": "Contact enregistré avec succès",
-    "errorNoContact": "⚠️ Configurez d'abord un contact !"
+    "errorNoContact": "⚠️ Configurez d'abord un contact !",
+    "autoModeLabel": "Détection de Chute",
+    "autoModeDescription": "Surveille les impacts violents.",
+    "alertFallDetected": "IMPACT DÉTECTÉ !",
+    "alertFallBody": "Chute grave détectée. Ça va ?"
 }

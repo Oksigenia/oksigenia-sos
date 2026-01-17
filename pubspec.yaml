@@ -43,6 +43,9 @@ dependencies:
   shared_preferences: ^2.5.4
   sensors_plus: ^7.0.0
   font_awesome_flutter: ^10.12.0
+  permission_handler: ^12.0.1
+  vibration: ^3.1.5
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:
@@ -54,6 +57,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -71,3 +75,11 @@ flutter:
   # Configuración de imágenes (Assets)
   assets:
     - assets/images/
+
+# TEMA OSCURO. CONFIGURACIÓN SIMPLIFICADA (Para imagen opaca)
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/icon.png" # Usa la imagen tal cual, sin capas
+  min_sdk_android: 21
+  remove_alpha_ios: true # Seguro extra para iOS, por si se te coló algo de transparencia

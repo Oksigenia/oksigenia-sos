@@ -16,5 +16,9 @@
     "settingsHint": "Bsp: +49 151 12345678",
     "settingsSave": "SPEICHERN",
     "settingsSavedMsg": "Kontakt erfolgreich gespeichert",
-    "errorNoContact": "⚠️ Bitte erst Kontakt konfigurieren!"
+    "errorNoContact": "⚠️ Bitte erst Kontakt konfigurieren!",
+    "autoModeLabel": "Sturzerkennung",
+    "autoModeDescription": "Überwacht starke Aufpralle.",
+    "alertFallDetected": "AUFPRALL ERKANNT!",
+    "alertFallBody": "Schwerer Sturz erkannt. Alles okay?"
 }

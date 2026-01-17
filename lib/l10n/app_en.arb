@@ -16,5 +16,9 @@
     "settingsHint": "Ex: +1 555-0199",
     "settingsSave": "SAVE",
     "settingsSavedMsg": "Contact saved successfully",
-    "errorNoContact": "⚠️ Configure a contact first!"
+    "errorNoContact": "⚠️ Configure a contact first!",
+    "autoModeLabel": "Fall Detection",
+    "autoModeDescription": "Monitors severe impacts.",
+    "alertFallDetected": "IMPACT DETECTED!",
+    "alertFallBody": "Severe fall detected. Are you okay?"
 }

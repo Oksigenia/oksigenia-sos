@@ -65,4 +65,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get errorNoContact => '⚠️ ¡Configura un contacto primero!';
+
+  @override
+  String get autoModeLabel => 'Detección de Caídas';
+
+  @override
+  String get autoModeDescription => 'Monitoriza impactos fuertes.';
+
+  @override
+  String get alertFallDetected => '¡IMPACTO DETECTADO!';
+
+  @override
+  String get alertFallBody => 'Se ha detectado una caída grave. ¿Estás bien?';
 }

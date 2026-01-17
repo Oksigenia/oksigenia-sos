@@ -16,5 +16,9 @@
     "settingsHint": "Ex: +351 91 234 5678",
     "settingsSave": "SALVAR",
     "settingsSavedMsg": "Contato salvo com sucesso",
-    "errorNoContact": "⚠️ Configure um contato primeiro!"
+    "errorNoContact": "⚠️ Configure um contato primeiro!",
+    "autoModeLabel": "Detecção de Queda",
+    "autoModeDescription": "Monitora impactos fortes.",
+    "alertFallDetected": "IMPACTO DETECTADO!",
+    "alertFallBody": "Queda grave detectada. Você está bem?"
 }

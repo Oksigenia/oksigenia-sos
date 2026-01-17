@@ -16,5 +16,9 @@
     "settingsHint": "Ej: 600123456",
     "settingsSave": "GUARDAR",
     "settingsSavedMsg": "Contacto guardado correctamente",
-    "errorNoContact": "⚠️ ¡Configura un contacto primero!"
+    "errorNoContact": "⚠️ ¡Configura un contacto primero!",
+    "autoModeLabel": "Detección de Caídas",
+    "autoModeDescription": "Monitoriza impactos fuertes.",
+    "alertFallDetected": "¡IMPACTO DETECTADO!",
+    "alertFallBody": "Se ha detectado una caída grave. ¿Estás bien?"
 }
