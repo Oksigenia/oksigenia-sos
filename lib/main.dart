@@ -1,7 +1,7 @@
 import 'dart:io'; 
 import 'dart:math' as math; 
 import 'dart:async'; 
-import 'dart:convert'; // Para leer el JSON remoto
+import 'dart:convert'; // Para leer JSON remoto
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; 
 import 'package:geolocator/geolocator.dart';
@@ -12,17 +12,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sensors_plus/sensors_plus.dart'; 
 import 'package:permission_handler/permission_handler.dart'; 
 import 'package:vibration/vibration.dart'; 
-import 'package:http/http.dart' as http; // EL CARTERO NUEVO
+import 'package:http/http.dart' as http; // El cartero para el Kill Switch
 import 'l10n/app_localizations.dart';
 
-// --- CONFIGURACIÓN DE SABORES ---
+// --- CONFIGURACIÓN DE SABORES (FLAVORS) ---
 enum AppFlavor { community, store }
 
 class AppConfig {
+  // Cuando compiles para la Store, cambia esto manualmente si no usas entry-points separados
   static AppFlavor flavor = AppFlavor.community; 
+  
   static bool get isCommunity => flavor == AppFlavor.community;
   static bool get isStore => flavor == AppFlavor.store;
-  // URL DONDE SUBIRÁS TU JSON DE CONTROL (Crea este archivo en tu server)
+  
+  // URL DE CONTROL REMOTO (KILL SWITCH)
   static const String remoteStatusUrl = "https://oksigenia.com/app_status.json";
 }
 
@@ -92,21 +95,27 @@ class _SOSScreenState extends State<SOSScreen> {
   bool _isLoading = false;
   String? _customStatusMessage;
 
+  // Canal Nativo (Kotlin)
   static const platform = MethodChannel('com.oksigenia.oksigenia_sos/sms');
 
+  // Sensores y Lógica
   bool _isMonitoring = false; 
   StreamSubscription? _accelerometerSubscription; 
   bool _isAlertActive = false; 
   Timer? _countdownTimer; 
   Position? _cachedPosition; 
   double _currentForce = 0.0; 
+  
+  // UMBRAL DE IMPACTO (Ajustado a 30G para uso real)
   final double _impactThreshold = 30.0; 
 
   @override
   void initState() {
     super.initState();
-    // AL INICIAR, COMPROBAMOS SI HAY MENSAJES DEL CUARTEL GENERAL
+    // 1. Verificar mensajes remotos (Kill Switch)
     _verificarMensajesRemotos();
+    // 2. Mostrar Disclaimer Legal si no se ha aceptado
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkDisclaimer());
   }
 
   @override
@@ -116,49 +125,98 @@ class _SOSScreenState extends State<SOSScreen> {
     super.dispose();
   }
 
-  // --- LÓGICA DE MENSAJERÍA REMOTA (KILL SWITCH) ---
+  // --- DISCLAIMER LEGAL ---
+  Future<void> _checkDisclaimer() async {
+    final prefs = await SharedPreferences.getInstance();
+    final bool accepted = prefs.getBool('disclaimer_accepted') ?? false;
+
+    if (!accepted && mounted) {
+      String title = "⚠️ AVISO LEGAL / DISCLAIMER";
+      String content = """
+Esta aplicación es una herramienta de ayuda y NO sustituye a los servicios de emergencia profesionales (112, 911).
+
+El funcionamiento depende del estado del dispositivo, batería, cobertura GPS/SMS y permisos.
+
+Oksigenia no se hace responsable de fallos en el envío o errores de localización.
+
+Úsala bajo tu propia responsabilidad.
+      """;
+
+      // Versión Inglés simple si el móvil está en inglés
+      if (Localizations.localeOf(context).languageCode == 'en') {
+        title = "⚠️ LIABILITY WAIVER";
+        content = """
+This app is a support tool and DOES NOT replace professional emergency services (112, 911).
+
+Functionality depends on device health, battery, GPS/SMS coverage, and permissions.
+
+Oksigenia is not liable for transmission failures or consequences resulting from use.
+
+Use at your own risk.
+        """;
+      }
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          backgroundColor: Colors.grey.shade900,
+          title: Text(title, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(child: Text(content, style: const TextStyle(color: Colors.white))),
+          actions: [
+            TextButton(
+              onPressed: () => SystemNavigator.pop(), // Cierra la app
+              child: const Text("SALIR / EXIT", style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await prefs.setBool('disclaimer_accepted', true);
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+              child: const Text("ACEPTAR / ACCEPT", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  // --- KILL SWITCH ---
   Future<void> _verificarMensajesRemotos() async {
     try {
       final response = await http.get(Uri.parse(AppConfig.remoteStatusUrl)).timeout(const Duration(seconds: 5));
-      
       if (response.statusCode == 200) {
-        // Estructura esperada del JSON en tu web:
-        // { "active": true, "version": 1, "title": "Aviso", "message": "Hola mundo", "kill": false }
         final data = json.decode(response.body);
-        
         if (data['active'] == true) {
-          // Guardamos que ya vimos este mensaje para no molestar siempre (usando versión o ID)
           final prefs = await SharedPreferences.getInstance();
-          final int lastSeenVersion = prefs.getInt('last_msg_version') ?? 0;
-          final int currentVersion = data['version'] ?? 0;
+          final int lastSeen = prefs.getInt('last_msg_version') ?? 0;
+          final int current = data['version'] ?? 0;
 
-          if (currentVersion > lastSeenVersion || data['kill'] == true) {
-             if (mounted) {
-               _mostrarAlertaRemota(data['title'], data['message'], data['kill'] == true, currentVersion);
-             }
+          if (current > lastSeen || data['kill'] == true) {
+             if (mounted) _mostrarAlertaRemota(data['title'], data['message'], data['kill'] == true, current);
           }
         }
       }
     } catch (e) {
-      // Si falla (no hay internet), no hacemos nada. Silencio administrativo.
-      debugPrint("Info remota no disponible: $e");
+      // Sin internet, ignoramos
     }
   }
 
   void _mostrarAlertaRemota(String? title, String? body, bool isKillSwitch, int version) {
     showDialog(
       context: context,
-      barrierDismissible: !isKillSwitch, // Si es Kill Switch, no se puede cerrar
+      barrierDismissible: !isKillSwitch,
       builder: (context) => AlertDialog(
         backgroundColor: isKillSwitch ? Colors.red.shade900 : Colors.grey.shade900,
-        title: Text(title ?? "Aviso Oksigenia", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(title ?? "Aviso", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         content: Text(body ?? "", style: const TextStyle(color: Colors.white)),
         actions: [
           if (!isKillSwitch)
             TextButton(
               onPressed: () async {
                 final prefs = await SharedPreferences.getInstance();
-                await prefs.setInt('last_msg_version', version); // Marcar como visto
+                await prefs.setInt('last_msg_version', version);
                 Navigator.pop(context);
               },
               child: const Text("Entendido"),
@@ -168,7 +226,7 @@ class _SOSScreenState extends State<SOSScreen> {
     );
   }
 
-  // --- 1. ACTIVAR MONITORIZACIÓN ---
+  // --- ACTIVAR MONITORIZACIÓN ---
   Future<void> _toggleMonitoring(bool value) async {
     final l10n = AppLocalizations.of(context)!;
 
@@ -234,10 +292,12 @@ class _SOSScreenState extends State<SOSScreen> {
     }
   }
 
-  // --- 2. LA CUENTA ATRÁS ---
+  // --- ALERTA Y CUENTA ATRÁS ---
   void _triggerFallAlert() async {
     setState(() { _isAlertActive = true; });
+
     _iniciarGPSEnSegundoPlano(); 
+
     int secondsRemaining = 60; 
     
     if (await Vibration.hasVibrator() ?? false) {
@@ -253,7 +313,9 @@ class _SOSScreenState extends State<SOSScreen> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             _countdownTimer ??= Timer.periodic(const Duration(seconds: 1), (timer) {
+              
               Vibration.vibrate(duration: 500);
+
               if (secondsRemaining > 0) {
                 setStateDialog(() { secondsRemaining--; });
               } else {
@@ -293,7 +355,10 @@ class _SOSScreenState extends State<SOSScreen> {
                       children: [
                         Icon(gpsLocked ? Icons.gps_fixed : Icons.gps_not_fixed, color: Colors.white, size: 16),
                         const SizedBox(width: 8),
-                        Text(gpsLocked ? "UBICACIÓN FIJADA" : "Buscando satélites...", style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                        Text(
+                          gpsLocked ? "UBICACIÓN FIJADA" : "Buscando satélites...", 
+                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)
+                        ),
                       ],
                     ),
                   ),
@@ -341,22 +406,20 @@ class _SOSScreenState extends State<SOSScreen> {
     Vibration.cancel(); 
   }
 
-  // --- 3. LÓGICA GPS BACKGROUND ---
   Future<void> _iniciarGPSEnSegundoPlano() async {
     _cachedPosition = null; 
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) return; 
       _cachedPosition = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high, timeLimit: const Duration(seconds: 55), 
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 55), 
       );
-      debugPrint("✅ GPS Background Locked: ${_cachedPosition.toString()}");
     } catch (e) {
-      debugPrint("⚠️ GPS Background Error: $e");
+      debugPrint("GPS Background Error: $e");
     }
   }
 
-  // --- 4. DISPARO SOS ---
   Future<void> _activarProtocoloSOS({bool autoMode = false}) async {
     final l10n = AppLocalizations.of(context)!;
     final prefs = await SharedPreferences.getInstance();
@@ -380,9 +443,7 @@ class _SOSScreenState extends State<SOSScreen> {
     try {
       if (_cachedPosition != null) {
         finalPosition = _cachedPosition;
-        debugPrint("🚀 Usando posición CACHÉ");
       } else {
-        debugPrint("🐢 Usando posición LIVE (Fallback)");
         bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
         if (!serviceEnabled && !autoMode) {
           await Geolocator.openLocationSettings();
@@ -394,13 +455,13 @@ class _SOSScreenState extends State<SOSScreen> {
            if (!autoMode) permission = await Geolocator.requestPermission();
         }
         finalPosition = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high, timeLimit: const Duration(seconds: 15), 
+          desiredAccuracy: LocationAccuracy.high,
+          timeLimit: const Duration(seconds: 15), 
         );
       }
       String link = "http://maps.google.com/?q=${finalPosition!.latitude},${finalPosition.longitude}";
       mensajeFinal = l10n.panicMessage(link);
     } catch (e) {
-      debugPrint("⚠️ Fallo GPS Final: $e");
       mensajeFinal = l10n.panicMessage("N/A (GPS Error/Timeout)");
     }
 
@@ -411,9 +472,7 @@ class _SOSScreenState extends State<SOSScreen> {
             'phone': contactoEmergencia,
             'msg': mensajeFinal,
           });
-          if (mounted) {
-             setState(() { _isLoading = false; _customStatusMessage = "⚡ AUTO-SOS SENT (NATIVE) ⚡"; });
-          }
+          if (mounted) setState(() { _isLoading = false; _customStatusMessage = "⚡ AUTO-SOS SENT (NATIVE) ⚡"; });
         } on PlatformException catch (e) {
            setState(() { _isLoading = false; _customStatusMessage = "❌ ERROR NATIVO: ${e.message}"; });
         }
@@ -449,7 +508,9 @@ class _SOSScreenState extends State<SOSScreen> {
   }
 
   @override
-  Widget build(BuildContext context) { return _buildScaffold(context); }
+  Widget build(BuildContext context) {
+    return _buildScaffold(context);
+  }
 
   Widget _buildScaffold(BuildContext context) {
      final l10n = AppLocalizations.of(context);
@@ -540,7 +601,7 @@ class _SOSScreenState extends State<SOSScreen> {
              const SizedBox(height: 30),
             const Padding(
               padding: EdgeInsets.all(20.0),
-              child: Text("© 2026 Oksigenia v1.99 RC", style: TextStyle(color: Colors.white24), textAlign: TextAlign.center),
+              child: Text("© 2026 Oksigenia v2.0 RC", style: TextStyle(color: Colors.white24), textAlign: TextAlign.center),
             ),
           ],
         ),
@@ -647,7 +708,9 @@ class _SOSScreenState extends State<SOSScreen> {
   }
 }
 
-// ConfigScreen
+// -----------------------------------------------------------------------------
+// PANTALLA DE CONFIGURACIÓN
+// -----------------------------------------------------------------------------
 class ConfigScreen extends StatefulWidget {
   const ConfigScreen({super.key});
   @override
@@ -734,6 +797,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   child: _isSaving ? const CircularProgressIndicator(color: Colors.white) : Text(l10n.settingsSave, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
               ),
+              
+              // --- ZONA FUNCIONES AVANZADAS ---
               const SizedBox(height: 40),
               const Divider(color: Colors.white24),
               ListTile(
@@ -746,19 +811,28 @@ class _ConfigScreenState extends State<ConfigScreen> {
                     context: context,
                     builder: (ctx) => AlertDialog(
                       backgroundColor: Colors.grey.shade900,
-                      title: Text(AppConfig.isCommunity ? "💎 Oksigenia Community" : "🔒 Oksigenia Pro", style: const TextStyle(color: Colors.white)),
+                      title: Text(
+                        AppConfig.isCommunity ? "💎 Oksigenia Community" : "🔒 Oksigenia Pro",
+                        style: const TextStyle(color: Colors.white)
+                      ),
                       content: Text(
                         AppConfig.isCommunity 
-                          ? "Esta es la versión COMMUNITY (Libre).\n\nTodas las funciones están desbloqueadas gracias al código abierto.\n\nSi te es útil, considera una donación voluntaria para mantener los servidores."
+                          ? "Esta es la versión COMMUNITY (Libre).\n\nTodas las funciones están desbloqueadas gracias al código abierto.\n\nSi te es útil, considera una donación voluntaria para mantener los servidores (¡aunque no tenemos!)."
                           : "Suscríbete a la versión PRO para desbloquear múltiples contactos y seguimiento en tiempo real.",
                         style: const TextStyle(color: Colors.white70),
                       ),
                       actions: [
                         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cerrar")),
                         if (AppConfig.isCommunity)
-                          ElevatedButton(onPressed: () => _abrirWebDonar(), child: const Text("Invitar a un café ☕")),
+                          ElevatedButton(
+                            onPressed: () => _abrirWebDonar(), 
+                            child: const Text("Invitar a un café ☕"),
+                          ),
                         if (AppConfig.isStore)
-                          ElevatedButton(onPressed: () {}, child: const Text("Suscribirse")),
+                          ElevatedButton(
+                            onPressed: () {}, 
+                            child: const Text("Suscribirse"),
+                          ),
                       ],
                     ),
                   );
