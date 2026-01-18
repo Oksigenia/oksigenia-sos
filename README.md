@@ -2,53 +2,50 @@
 
 **Outdoor Emergency Assistant | FOSS | Privacy-First**
 
-Oksigenia SOS es una herramienta de seguridad personal diseñada para deportes de montaña, trabajadores aislados y situaciones de riesgo. Funciona de manera autónoma, sin depender de servidores externos ni servicios privativos.
+[ES] Oksigenia SOS es una herramienta de seguridad personal diseñada para deportes de montaña, trabajadores aislados y situaciones de riesgo. Funciona de manera autónoma, sin depender de servicios privativos.
+
+[EN] Oksigenia SOS is a personal safety tool designed for mountain sports, lone workers, and risky situations. It operates autonomously without relying on proprietary services.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Platform](https://img.shields.io/badge/Platform-Android-green.svg)]()
-[![Built with](https://img.shields.io/badge/Built%20with-Flutter-blue.svg)](https://flutter.dev)
+[![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/donate/?business=paypal@oksigenia.cc&currency_code=EUR)
 
 ---
 
-## 📸 Screenshots
+## 📸 Screenshots / Capturas
 
-| Home & Status | Settings & Privacy |
-|:---:|:---:|
-| <img src="screenshots/screen_main.jpg" width="250" /> | <img src="screenshots/screen_settings.jpg" width="250" /> |
-| **Monitor en Tiempo Real**<br>Visualización de Fuerza G y Estado GPS | **Menú Rápido**<br>Acceso a privacidad y donaciones |
-
-| Alerta Activa | Envío Confirmado |
-|:---:|:---:|
-| <img src="screenshots/screen_alert.jpg" width="250" /> | <img src="screenshots/screen_send.jpg" width="250" /> |
-| **Pre-Alerta (60s)**<br>Sirena de alta potencia + Wakelock | **Modo Ahorro Batería**<br>Confirmación visual y parada de sensores |
-
-| FOSS & Comunidad | Legal & Disclaimer |
-|:---:|:---:|
-| <img src="screenshots/screen_foss.jpg" width="250" /> | <img src="screenshots/Captura08.jpg" width="250" /> |
-| **Open Source**<br>Sin rastreadores. Financiado por la comunidad | **Responsabilidad**<br>Aviso legal claro antes de iniciar |
+| Home & Status | Settings & Privacy | Alerta / Alert |
+|:---:|:---:|:---:|
+| <img src="screenshots/screen_main.jpg" width="200" /> | <img src="screenshots/screen_settings.jpg" width="200" /> | <img src="screenshots/screen_alert.jpg" width="200" /> |
 
 ---
 
-## 🚀 Características Principales (v3.5.0)
+## 🚀 Features / Características (v3.5.0)
 
-* **Detección de Caídas (Fall Detection):** Utiliza el acelerómetro para detectar impactos severos (>3.5G) y activar la alarma automáticamente.
-* **Monitor de Inactividad (Dead Man's Switch):** Si no detecta movimiento durante **60 minutos** (configurable), inicia el protocolo de emergencia.
-* **Independencia de Google:** Utiliza el chip GPS por hardware (`forceLocationManager`). Funciona en GrapheneOS, LineageOS y dispositivos sin Google Play Services.
-* **Protocolo de Batería:**
-    * Durante la alerta: Mantiene la pantalla encendida y fuerza el audio al máximo (Stream Alarm).
-    * Tras el envío: Libera la pantalla y detiene sensores para maximizar la supervivencia de la batería.
-* **Privacidad Total:** No hay registro, no hay base de datos, no hay rastreo. Los datos solo salen de tu teléfono vía SMS a tu contacto de confianza.
+| Feature | English | Español |
+|:---|:---|:---|
+| 📉 **Fall Detection** | Detects severe impacts (>3.5G) and triggers the alarm automatically. | Detecta impactos severos (>3.5G) y activa la alarma automáticamente. |
+| ⏱️ **Inactivity Monitor** | Triggers emergency protocol if no movement is detected for **60 minutes**. | Si no detecta movimiento durante **60 minutos**, inicia el protocolo de emergencia. |
+| 🛰️ **Hardware GPS** | Uses hardware GPS chip directly. Works on GrapheneOS and De-Googled devices. | Usa el chip GPS por hardware. Funciona en GrapheneOS y dispositivos sin servicios de Google. |
+| 🔋 **Battery Saver** | Releases screen lock after sending SOS to maximize survival time. | Tras el envío, libera el bloqueo de pantalla para maximizar la supervivencia de la batería. |
+| 🔒 **Privacy** | No registration, no tracking, no cloud. Data only leaves via SMS. | Sin registros, sin rastreo, sin nube. Los datos solo salen vía SMS. |
 
-## 🛠️ Instalación y Compilación
+---
 
-Este proyecto es 100% Flutter. Para compilarlo necesitas el SDK de Flutter y Android Studio/VS Code.
+## 🛠️ Download & Install / Descarga e Instalación
 
+### 🌐 Official Website / Web Oficial
+[EN] Download the APK directly from our official site:
+[ES] Descarga el APK directamente desde nuestra web oficial:
+👉 [**https://oksigenia.com/sos**](https://oksigenia.com/sos)
+
+### 📦 GitHub Releases
+[EN] Signed versions and SHA-256 security hashes:
+[ES] Versiones firmadas y hashes de seguridad SHA-256:
+[Releases Page](https://github.com/Oksigenia/oksigenia-sos/releases)
+
+### 💻 Build from source / Compilar desde código
 ```bash
-# 1. Clonar el repositorio
 git clone [https://github.com/Oksigenia/oksigenia-sos.git](https://github.com/Oksigenia/oksigenia-sos.git)
-
-# 2. Instalar dependencias
 flutter pub get
-
-# 3. Compilar APK (Release)
 flutter build apk --release
