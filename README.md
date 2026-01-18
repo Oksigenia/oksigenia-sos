@@ -26,7 +26,7 @@
 ## ⚠️ Troubleshooting: Permissions (Android 13+ / GrapheneOS)
 
 ### 🇪🇸 Español
-Si al intentar activar los SMS ves un aviso de **"Ajustes restringidos"** (como en la Captura 09), sigue estos pasos para desbloquear la aplicación:
+Si al intentar activar los SMS ves un aviso de **"Ajustes restringidos"**, sigue estos pasos para desbloquear la aplicación:
 
 1. **Información de la App:** Ve a Ajustes > Apps > Oksigenia SOS.
 2. **Menú oculto:** Pulsa los **tres puntos (⋮)** en la esquina superior derecha.
@@ -36,7 +36,7 @@ Si al intentar activar los SMS ves un aviso de **"Ajustes restringidos"** (como 
 ---
 
 ### 🇺🇸 English
-If you see a **"Restricted settings"** warning when enabling SMS permissions (as shown in Captura 09), follow these steps to unlock the app:
+If you see a **"Restricted settings"** warning when enabling SMS permissions, follow these steps to unlock the app:
 
 1. **App Info:** Go to your phone Settings > Apps > Oksigenia SOS.
 2. **Hidden Menu:** Tap the **three dots (⋮)** in the top right corner.
