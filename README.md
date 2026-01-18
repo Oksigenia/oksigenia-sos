@@ -8,23 +8,17 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Platform](https://img.shields.io/badge/Platform-Android-green.svg)]()
-[![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/donate/?business=paypal@oksigenia.cc&currency_code=EUR)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/donate/?business=paypal@oksigenia.cc&currency_code=EUR)
 
 ---
 
 ## 📸 Screenshots / Capturas
 
-| Home & Status | Settings |
-|:---:|:---:|
-| <img src="screenshots/screen_main.jpg" width="200" /> | <img src="screenshots/screen_settings.jpg" width="200" /> |
-
-| Alerta / Alert | Enviado / Sent |
-|:---:|:---:|
-| <img src="screenshots/screen_alert.jpg" width="200" /> | <img src="screenshots/screen_send.jpg" width="200" /> |
-
-| FOSS Info | Legal & Disclaimer |
-|:---:|:---:|
-| <img src="screenshots/screen_foss.jpg" width="200" /> | <img src="screenshots/Captura08.jpg" width="200" /> |
+| Home | Settings | Alert |
+|:---:|:---:|:---:|
+| <img src="screenshots/screen_main.jpg" width="200" /> | <img src="screenshots/screen_settings.jpg" width="200" /> | <img src="screenshots/screen_alert.jpg" width="200" /> |
+| **Sent / Enviado** | **FOSS Info** | **Legal** |
+| <img src="screenshots/screen_send.jpg" width="200" /> | <img src="screenshots/screen_foss.jpg" width="200" /> | <img src="screenshots/Captura08.jpg" width="200" /> |
 
 ---
 
