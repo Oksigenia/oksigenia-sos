@@ -16,9 +16,9 @@
 
 ## 📸 Screenshots / Capturas
 
-| Home (v3.6) | Menu | Alert |
+| Home (v3.6.1) | Menu | Alert |
 |:---:|:---:|:---:|
-| <img src="screenshots/Captura10.jpg" width="200" alt="Home Screen Test Mode" /> | <img src="screenshots/screen_settings.jpg" width="200" alt="Menu" /> | <img src="screenshots/screen_alert.jpg" width="200" alt="Red Alert" /> |
+| <img src="screenshots/Captura10.jpg" width="200" alt="Home Screen Monitoring" /> | <img src="screenshots/screen_settings.jpg" width="200" alt="Menu" /> | <img src="screenshots/screen_alert.jpg" width="200" alt="Red Alert" /> |
 | **Success / Enviado** | **FOSS / Donate** | **Legal** |
 | <img src="screenshots/screen_send.jpg" width="200" alt="Success Blue Screen" /> | <img src="screenshots/screen_foss.jpg" width="200" alt="Donation Dialog" /> | <img src="screenshots/Captura08.jpg" width="200" alt="Legal Notice" /> |
 
@@ -35,27 +35,39 @@
 
 ---
 
-## ⚠️ Troubleshooting: "Restricted Settings" (Android 13+)
+## ⚠️ Critical Configuration / Configuración Crítica
+
+### 🔋 1. Battery Optimization / Optimización de Batería
+[EN] To ensure sensors and GPS never "sleep", you **must** disable battery optimization:
+[ES] Para asegurar que los sensores y el GPS no se "duerman", **debes** desactivar la optimización:
+
+| Step | Action (English) | Acción (Español) |
+|:---:|:---|:---|
+| **1** | Long press icon > **App Info (i)** | Mantén pulsado icono > **Información (i)** |
+| **2** | Go to **App battery usage** | Ve a **Uso de batería de la aplicación** |
+| **3** | Select **"Unrestricted"** | Selecciona **"Sin restricciones"** |
+
+---
+
+### 🛡️ 2. "Restricted Settings" / Ajustes Restringidos (Android 13+)
 
 <img src="screenshots/Captura09.jpg" align="right" width="180" alt="Restricted Settings Warning">
 
-### 🇪🇸 Español
-Si instalas el APK manualmente y ves este aviso al activar los SMS, es una medida de seguridad de Android. **La app funciona correctamente**, solo necesitas autorizarla:
-
+**[ES] Español**
+Si instalas el APK manualmente y ves este aviso al activar los SMS, es una medida de seguridad de Android. La app funciona correctamente, solo necesitas autorizarla:
 1. Ve a **Ajustes > Apps > Oksigenia SOS**.
 2. Pulsa los **tres puntos (⋮)** (esquina superior derecha).
 3. Selecciona **"Permitir ajustes restringidos"**.
 4. Vuelve a la app y activa el permiso de SMS.
 
-<br clear="right"/>
-
-### 🇺🇸 English
-If you sideload the APK and see this warning when enabling SMS, it is an Android security feature. **The app works correctly**, you just need to authorize it manually:
-
+**[🇺🇸] English**
+If you sideload the APK and see a "Restricted Setting" warning when enabling SMS:
 1. Go to **Settings > Apps > Oksigenia SOS**.
 2. Tap the **three dots (⋮)** (top right corner).
 3. Select **"Allow restricted settings"**.
 4. Return to the app and grant the SMS permission.
+
+<br clear="right"/>
 
 ---
 
@@ -80,5 +92,6 @@ Check the **[Releases Section](https://github.com/Oksigenia/oksigenia-sos/releas
 ### 💻 Build from source
 ```bash
 git clone [https://github.com/Oksigenia/oksigenia-sos.git](https://github.com/Oksigenia/oksigenia-sos.git)
+cd oksigenia-sos
 flutter pub get
 flutter build apk --release --split-per-abi
