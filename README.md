@@ -2,17 +2,18 @@
 
 **Outdoor Emergency Assistant | FOSS | Privacy-First**
 
-[ES] Oksigenia SOS es una herramienta de seguridad personal diseñada para deportes de montaña, trabajadores aislados y situaciones de riesgo. Funciona de manera autónoma, sin depender de servicios privativos.
+[ES] Oksigenia SOS es una herramienta de seguridad personal diseñada para deportes de montaña y situaciones de riesgo. Funciona de manera autónoma, sin depender de servicios privativos.
 
-[EN] Oksigenia SOS is a personal safety tool designed for mountain sports, lone workers, and risky situations. It operates autonomously without relying on proprietary services.
+[EN] Oksigenia SOS is a personal safety tool designed for mountain sports and risky situations. It operates autonomously without relying on proprietary services.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Platform](https://img.shields.io/badge/Platform-Android-green.svg)]()
-[![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/donate/?business=paypal@oksigenia.cc&currency_code=EUR)
+
+👉 **[Donate via PayPal / Donar con PayPal](https://www.paypal.com/donate/?business=paypal@oksigenia.cc&currency_code=EUR)** 💙
 
 ---
 
-## 📸 Screenshots / Capturas
+## 📸 Screenshots
 
 | Home | Settings | Alert |
 |:---:|:---:|:---:|
@@ -22,31 +23,27 @@
 
 ---
 
-## 🚀 Features / Características (v3.5.0)
+## 🚀 Features (v3.5.0)
 
 | Feature | English | Español |
 |:---|:---|:---|
-| 📉 **Fall Detection** | Detects severe impacts (>3.5G) and triggers the alarm automatically. | Detecta impactos severos (>3.5G) y activa la alarma automáticamente. |
-| ⏱️ **Inactivity Monitor** | Triggers emergency protocol if no movement is detected for **60 minutes**. | Si no detecta movimiento durante **60 minutos**, inicia el protocolo de emergencia. |
-| 🛰️ **Hardware GPS** | Uses hardware GPS chip directly. Works on GrapheneOS and De-Googled devices. | Usa el chip GPS por hardware. Funciona en GrapheneOS y dispositivos sin servicios de Google. |
-| 🔋 **Battery Saver** | Releases screen lock after sending SOS to maximize survival time. | Tras el envío, libera el bloqueo de pantalla para maximizar la supervivencia de la batería. |
-| 🔒 **Privacy** | No registration, no tracking, no cloud. Data only leaves via SMS. | Sin registros, sin rastreo, sin nube. Los datos solo salen vía SMS. |
+| 📉 **Fall Detection** | Detects severe impacts (>3.5G) and triggers alarm. | Detecta impactos severos (>3.5G) y activa la alarma. |
+| ⏱️ **Inactivity Monitor** | Emergency protocol if no movement for **60 min**. | Protocolo de emergencia si no hay movimiento en **60 min**. |
+| 🛰️ **Hardware GPS** | Works on GrapheneOS and De-Googled devices. | Funciona en GrapheneOS y sin servicios de Google. |
+| 🔋 **Battery Saver** | Releases screen lock after sending SOS. | Libera el bloqueo de pantalla tras enviar el SOS. |
+| 🔒 **Privacy** | No registration, no tracking. SMS only. | Sin registro, sin rastreo. Solo SMS. |
 
 ---
 
-## 🛠️ Download & Install / Descarga e Instalación
+## 🛠️ Download / Descarga
 
-### 🌐 Official Website / Web Oficial
-[EN] Download the APK directly from our official site:
-[ES] Descarga el APK directamente desde nuestra web oficial:
+### 🌐 Official Website
 👉 [**https://oksigenia.com/sos**](https://oksigenia.com/sos)
 
 ### 📦 GitHub Releases
-[EN] Signed versions and SHA-256 security hashes:
-[ES] Versiones firmadas y hashes de seguridad SHA-256:
-[Releases Page](https://github.com/Oksigenia/oksigenia-sos/releases)
+[**Download APK (v3.5.0)**](https://github.com/Oksigenia/oksigenia-sos/releases)
 
-### 💻 Build from source / Compilar desde código
+### 💻 Build from source
 ```bash
 git clone [https://github.com/Oksigenia/oksigenia-sos.git](https://github.com/Oksigenia/oksigenia-sos.git)
 flutter pub get
