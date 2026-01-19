@@ -15,6 +15,13 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+// --- NUEVO: BLOQUEAR LIBRERÍAS DE GOOGLE (CRÍTICO PARA F-DROID) ---
+// Esto evita que 'geolocator' meta código propietario de Google en tu APK.
+configurations.all {
+    exclude(group = "com.google.android.gms", module = "play-services-location")
+}
+// ------------------------------------------------------------------
+
 android {
     namespace = "com.oksigenia.oksigenia_sos"
     compileSdk = flutter.compileSdkVersion
@@ -28,6 +35,13 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
+    // --- NUEVO: OCULTAR METADATOS DE DEPENDENCIAS A GOOGLE ---
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+    // ---------------------------------------------------------
 
     sourceSets {
         getByName("main").java.srcDirs("src/main/kotlin")
@@ -54,10 +68,10 @@ android {
 
     buildTypes {
         getByName("release") {
-            // 4. APLICAR LA FIRMA DE RELEASE (¡CRÍTICO!)
+            // 4. APLICAR LA FIRMA DE RELEASE
             signingConfig = signingConfigs.getByName("release")
             
-            // Mantenemos esto en false por seguridad en esta versión para evitar problemas de ofuscación con el servicio
+            // Mantenemos esto en false para evitar problemas con la ofuscación del servicio en foreground
             isMinifyEnabled = false
             isShrinkResources = false
         }

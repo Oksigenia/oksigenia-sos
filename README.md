@@ -1,4 +1,4 @@
-# Oksigenia SOS 🏔️ v3.6.1
+# Oksigenia SOS 🏔️ v3.6.2
 
 **Outdoor Emergency Assistant | FOSS | Privacy-First**
 
@@ -16,7 +16,7 @@
 
 ## 📸 Screenshots / Capturas
 
-| Home (v3.6.1) | Menu | Alert |
+| Home (v3.6.2) | Menu | Alert |
 |:---:|:---:|:---:|
 | <img src="screenshots/Captura10.jpg" width="200" alt="Home Screen Monitoring" /> | <img src="screenshots/screen_settings.jpg" width="200" alt="Menu" /> | <img src="screenshots/screen_alert.jpg" width="200" alt="Red Alert" /> |
 | **Success / Enviado** | **FOSS / Donate** | **Legal** |
@@ -24,7 +24,7 @@
 
 ---
 
-## ✨ New in v3.6.1 / Novedades
+## ✨ New in v3.6.2 / Novedades
 
 | Feature | English | Español |
 |:---|:---|:---|
