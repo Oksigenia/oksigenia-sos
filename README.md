@@ -6,7 +6,7 @@
 
 [EN] Oksigenia SOS is a personal safety tool designed for mountain sports and risky situations. It detects falls or inactivity and sends automatic SMS with GPS coordinates. It operates autonomously without relying on proprietary services.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Platform](https://img.shields.io/badge/Platform-Android-green.svg)]()
 [![Privacy](https://img.shields.io/badge/Privacy-Offline%20%20No%20Trackers-blue)]()
 
@@ -16,11 +16,11 @@
 
 ## 📸 Screenshots / Capturas
 
-| Home (v3.6.2) | Menu | Alert |
+| Home | Menu | Alert |
 |:---:|:---:|:---:|
-| <img src="screenshots/Captura10.jpg" width="200" alt="Home Screen Monitoring" /> | <img src="screenshots/screen_settings.jpg" width="200" alt="Menu" /> | <img src="screenshots/screen_alert.jpg" width="200" alt="Red Alert" /> |
+| <img src="screenshots/screen_main.jpg" width="200" alt="Home Screen Monitoring" /> | <img src="screenshots/screen_settings.jpg" width="200" alt="Menu" /> | <img src="screenshots/screen_alert.jpg" width="200" alt="Red Alert" /> |
 | **Success / Enviado** | **FOSS / Donate** | **Legal** |
-| <img src="screenshots/screen_send.jpg" width="200" alt="Success Blue Screen" /> | <img src="screenshots/screen_foss.jpg" width="200" alt="Donation Dialog" /> | <img src="screenshots/Captura08.jpg" width="200" alt="Legal Notice" /> |
+| <img src="screenshots/screen_send.jpg" width="200" alt="Success Blue Screen" /> | <img src="screenshots/screen_foss.jpg" width="200" alt="Donation Dialog" /> | <img src="screenshots/legal_notice.jpg" width="200" alt="Legal Notice" /> |
 
 ---
 
