@@ -4,23 +4,22 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// 1. IMPORTACIONES NECESARIAS PARA LEER EL KEYSTORE
+// 1. IMPORTACIONES NECESARIAS
 import java.util.Properties
 import java.io.FileInputStream
 
-// 2. CARGAR EL ARCHIVO key.properties
+// 2. CARGAR EL ARCHIVO key.properties (SOLO SI EXISTE)
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
-// --- NUEVO: BLOQUEAR LIBRERÍAS DE GOOGLE (CRÍTICO PARA F-DROID) ---
-// Esto evita que 'geolocator' meta código propietario de Google en tu APK.
+// --- BLOQUEAR LIBRERÍAS DE GOOGLE (CRÍTICO PARA F-DROID) ---
 configurations.all {
     exclude(group = "com.google.android.gms", module = "play-services-location")
 }
-// ------------------------------------------------------------------
+// -----------------------------------------------------------
 
 android {
     namespace = "com.oksigenia.oksigenia_sos"
@@ -36,12 +35,11 @@ android {
         jvmTarget = "1.8"
     }
 
-    // --- NUEVO: OCULTAR METADATOS DE DEPENDENCIAS A GOOGLE ---
+    // --- OCULTAR METADATOS DE DEPENDENCIAS A GOOGLE ---
     dependenciesInfo {
         includeInApk = false
         includeInBundle = false
     }
-    // ---------------------------------------------------------
 
     sourceSets {
         getByName("main").java.srcDirs("src/main/kotlin")
@@ -56,22 +54,27 @@ android {
         versionName = flutter.versionName
     }
 
-    // 3. DEFINIR LA CONFIGURACIÓN DE FIRMA (RELEASE)
+    // 3. DEFINIR LA CONFIGURACIÓN DE FIRMA (CONDICIONAL)
     signingConfigs {
-        create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = file(keystoreProperties["storeFile"] as String)
-            storePassword = keystoreProperties["storePassword"] as String
+        // Solo creamos la config "release" si hemos cargado las propiedades
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+            }
         }
     }
 
     buildTypes {
         getByName("release") {
-            // 4. APLICAR LA FIRMA DE RELEASE
-            signingConfig = signingConfigs.getByName("release")
+            // 4. APLICAR LA FIRMA DE RELEASE (SOLO SI EXISTE)
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             
-            // Mantenemos esto en false para evitar problemas con la ofuscación del servicio en foreground
+            // Mantenemos esto en false para evitar problemas con la ofuscación
             isMinifyEnabled = false
             isShrinkResources = false
         }
