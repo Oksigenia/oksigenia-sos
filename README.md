@@ -1,4 +1,4 @@
-# Oksigenia SOS 🏔️ v3.7.0
+# Oksigenia SOS 🏔️ v3.7.1
 
 **Outdoor Emergency Assistant | FOSS | Privacy-First**
 
@@ -26,14 +26,14 @@
 
 ---
 
-## ✨ New in v3.7.0 / Novedades
+## ✨ New in v3.7.1 / Novedades
 
 | Feature | English | Español |
 |:---|:---|:---|
-| 🚨 **Rock-Solid Alert** | **Screen Wake Fix**. The Red Alert screen now reliably wakes up the phone and shows over the lock screen (Android 14+). | **Pantalla Bloqueada**. La Alerta Roja ahora despierta el móvil y se muestra sobre el bloqueo de forma fiable. |
+| ⚡ **Hotfix v3.7.1** | **Instant Sensor Start**. Fixed sensor freeze on startup for GrapheneOS/Android 14 users. | **Inicio Instantáneo**. Solucionado el bloqueo de sensores al inicio en GrapheneOS/Android 14. |
+| 🚨 **Rock-Solid Alert** | **Screen Wake Fix**. The Red Alert screen now reliably wakes up the phone and shows over the lock screen. | **Pantalla Bloqueada**. La Alerta Roja ahora despierta el móvil y se muestra sobre el bloqueo de forma fiable. |
 | 🗺️ **Dual Maps** | SOS SMS now includes both **Google Maps** and **OpenStreetMap (OSM)** links. | El SMS de socorro incluye enlaces a **Google Maps** y **OpenStreetMap (OSM)**. |
 | 🛡️ **F-Droid Ready** | Improved build system with reproducible builds and conditional signing. | Sistema de compilación mejorado para F-Droid con builds reproducibles. |
-| 🎨 **Pro Design** | New professional assets, improved icons, and cleaner interface. | Nuevos gráficos profesionales, iconos mejorados e interfaz más limpia. |
 
 ---
 
