@@ -18,7 +18,7 @@ We take the security of Oksigenia SOS very seriously. If you have discovered a s
 Please **DO NOT** open a public issue on GitHub. Instead, report the vulnerability privately using GitHub's **Private Vulnerability Reporting** feature:
 
 1. Go to the [Security tab](https://github.com/OksigeniaSL/oksigenia-sos/security).
-2. Click on **"Report a vulnerability"** (if available) or email us directly at: **dev@oksigenia.com**.
+2. Click on **"Report a vulnerability"** (if available) or email us directly at: **dev@oksigenia.cc**.
 
 ### What to include
 * A detailed description of the vulnerability.
