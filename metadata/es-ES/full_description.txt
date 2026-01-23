@@ -1,6 +1,7 @@
 Oksigenia SOS es una herramienta de apoyo para tu seguridad en actividades al aire libre (ciclismo, senderismo, náutica). 
 
 Funciones principales:
+
 - Detección inteligente de impactos y caídas.
 - Monitor de inactividad (Dead Man's Switch).
 - Envío automático de SMS con ubicación GPS a tu contacto de confianza.
