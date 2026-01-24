@@ -33,7 +33,8 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
   int _currentInactivityLimit = 3600; 
   int get currentInactivityLimit => _currentInactivityLimit;
 
-  double _currentGForce = 1.0;
+  // CAMBIO: Variable para la aguja visual
+  double _visualGForce = 1.0;
   DateTime _lastMovementTime = DateTime.now();
   
   Timer? _inactivityTimer;
@@ -63,7 +64,9 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
   bool get isFallDetectionActive => _isFallDetectionActive;
   bool get isInactivityMonitorActive => _isInactivityMonitorActive;
   int get countdownSeconds => _countdownSeconds;
-  double get currentGForce => _currentGForce;
+  
+  // CAMBIO: El getter devuelve el valor suavizado para la UI
+  double get currentGForce => _visualGForce;
   
   String? get emergencyContact {
     final contacts = PreferencesService().getContacts();
@@ -167,25 +170,40 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     } catch (e) { debugPrint("Passive GPS Error: $e"); }
   }
 
+  // --- FUNCIÓN DEL SENSOR CORREGIDA (HOTFIX v3.8.1) ---
   void _startGForceMonitoring() {
     _accelerometerSubscription?.cancel();
     try {
-      _accelerometerSubscription = accelerometerEventStream(samplingPeriod: SensorInterval.uiInterval)
+      // Usamos gameInterval (20ms) para precisión
+      _accelerometerSubscription = accelerometerEventStream(samplingPeriod: SensorInterval.gameInterval)
         .listen((AccelerometerEvent event) {
           double rawMagnitude = sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
-          _currentGForce = rawMagnitude / 9.81;
+          double instantG = rawMagnitude / 9.81;
 
-          if ((_currentGForce > 1.2 || _currentGForce < 0.8)) {
+          // Lógica de visualización (Peak Hold & Decay)
+          // Si el valor sube, sube rápido. Si baja, baja lento para que el ojo lo vea.
+          if (instantG > _visualGForce) {
+            _visualGForce = instantG;
+          } else {
+            _visualGForce = (_visualGForce * 0.90) + (instantG * 0.10);
+          }
+
+          // Inactividad (Sensibilidad baja para detectar movimiento leve)
+          if ((instantG > 1.2 || instantG < 0.8)) {
              _lastMovementTime = DateTime.now();
           }
           
-          if (_isFallDetectionActive && _currentGForce > 3.5 && (_status == SOSStatus.ready || _status == SOSStatus.locationFixed)) {
+          // UMBRAL DE CAÍDA ENDURECIDO: 4.2G
+          // Evita falsos positivos por saltos o sacudidas.
+          if (_isFallDetectionActive && instantG > 4.2 && (_status == SOSStatus.ready || _status == SOSStatus.locationFixed)) {
+            debugPrint("💥 IMPACTO DETECTADO: ${instantG.toStringAsFixed(2)} G");
             _triggerPreAlert(AlertCause.fall);
           }
           notifyListeners();
         }, onError: (e) => debugPrint("Sensor Error: $e"));
     } catch (e) { debugPrint("Error iniciando acelerómetro: $e"); }
   }
+  // ----------------------------------------------------
 
   Future<void> _checkPermissions() async {
     await [Permission.location, Permission.sms, Permission.notification].request();
@@ -366,7 +384,6 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       Position pos = await Geolocator.getCurrentPosition(locationSettings: locationSettings);
       _setStatus(SOSStatus.locationFixed);
       
-      // 1. CORRECCIÓN DEL ENLACE DE MAPAS (Adiós googleusercontent)
       msgBody += "\nMaps: https://maps.google.com/?q=${pos.latitude},${pos.longitude}";
       msgBody += "\nOSM: https://www.openstreetmap.org/?mlat=${pos.latitude}&mlon=${pos.longitude}";
       
@@ -389,7 +406,6 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       _setStatus(SOSStatus.sent);
       await platform.invokeMethod('sleepScreen');
       
-      // 2. CORRECCIÓN DE VOLUMEN (100% y Canal Alarm/Media)
       try {
         _audioPlayer = AudioPlayer();
         await _audioPlayer!.setAudioContext(AudioContext(
@@ -397,12 +413,12 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
                isSpeakerphoneOn: true, 
                stayAwake: false, 
                contentType: AndroidContentType.sonification, 
-               usageType: AndroidUsageType.media, // Usamos Media para forzar sonido
+               usageType: AndroidUsageType.media,
                audioFocus: AndroidAudioFocus.gainTransient
            ),
            iOS: AudioContextIOS(category: AVAudioSessionCategory.playback)
         ));
-        await _audioPlayer!.setVolume(1.0); // FORZAMOS VOLUMEN MÁXIMO
+        await _audioPlayer!.setVolume(1.0); 
         await _audioPlayer!.play(AssetSource('sounds/send.mp3'));
       } catch(e) { debugPrint("Error beep send: $e"); }
 
