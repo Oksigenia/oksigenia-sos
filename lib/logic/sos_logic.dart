@@ -24,8 +24,8 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
   String _errorMessage = '';
   static const platform = MethodChannel('com.oksigenia.sos/sms');
   
-  // FIX v3.8.2: Umbral elevado a 8.0G para evitar falsos positivos al saltar
-  static const double _impactThreshold = 8.0;
+  // FIX v3.8.3: Umbral subido a 12.0G para evitar saltos fuertes
+  static const double _impactThreshold = 12.0;
 
   bool _isFallDetectionActive = false;
   bool _isInactivityMonitorActive = false;
@@ -74,13 +74,12 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     return contacts.isNotEmpty ? contacts.first : null;
   }
 
-  // --- INICIO CORREGIDO (v3.8.2) ---
+  // --- INICIO CORREGIDO (v3.8.2/3) ---
   Future<void> init() async {
     WidgetsBinding.instance.addObserver(this);
     await _loadSettings();
 
     // 1. Pedir permisos y arrancar Sylvia (Servicio) INMEDIATAMENTE.
-    // Quitamos el Future.delayed para que no se duerma.
     await _checkPermissions();
     final service = FlutterBackgroundService();
     if (!(await service.isRunning())) {
@@ -185,11 +184,13 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
             _visualGForce = (_visualGForce * 0.90) + (instantG * 0.10);
           }
 
-          if ((instantG > 1.2 || instantG < 0.8)) {
+          // FIX v3.8.3: Rango estrechado (1.1 / 0.9) para detectar movimientos sutiles
+          // Esto evita que la alarma de inactividad salte mientras caminas suave o subes escaleras
+          if ((instantG > 1.1 || instantG < 0.9)) {
              _lastMovementTime = DateTime.now();
           }
           
-          // FIX v3.8.2: Usamos la variable _impactThreshold (8.0G)
+          // FIX v3.8.3: Usamos el nuevo umbral de 12.0G
           if (_isFallDetectionActive && instantG > _impactThreshold && (_status == SOSStatus.ready || _status == SOSStatus.locationFixed)) {
             debugPrint("💥 IMPACTO DETECTADO: ${instantG.toStringAsFixed(2)} G");
             _triggerPreAlert(AlertCause.fall);
