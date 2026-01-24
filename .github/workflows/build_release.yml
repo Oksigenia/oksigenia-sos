@@ -2,13 +2,18 @@ name: Build Android Release
 
 on:
   push:
-    branches: [ "main" ]
+    # Solo se activa cuando se sube una etiqueta que empieza por 'v' (v3.8.1)
+    # Esto elimina el duplicado que se creaba al subir a la rama 'main'
     tags:
       - 'v*'
+    
+    # Ignora cambios en estos archivos para no gastar minutos de compilación
     paths-ignore:
       - '**.md'
       - 'docs/**'
       - '.gitignore'
+      - 'metadata/**'
+      - 'screenshots/**'
 
 jobs:
   build:
@@ -48,9 +53,19 @@ jobs:
     - name: Build Split APKs (Release)
       run: flutter build apk --release --split-per-abi --no-shrink
 
-    # --- SUBIDA DE ARTEFACTOS ---
-    - name: Upload APKs to GitHub
-      uses: actions/upload-artifact@v4
+    # --- SUBIR LOS APKs COMO ARTEFACTOS ---
+    - name: Upload APKs
+      uses: actions/upload-artifact@v3
       with:
         name: oksigenia-release-apks
-        path: build/app/outputs/flutter-apk/*-release.apk
+        path: build/app/outputs/flutter-apk/app-*-release.apk
+
+    # --- CREAR LA RELEASE EN GITHUB AUTOMÁTICAMENTE ---
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/app/outputs/flutter-apk/app-*-release.apk
+        draft: true
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
