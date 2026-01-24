@@ -31,9 +31,6 @@ jobs:
     - name: Get Dependencies
       run: flutter pub get
 
-    # Fuerza un versionCode alto (7000) para evitar el error de instalación
-    - name: Bump Version Code
-      run: sed -i 's/version: .*/version: 3.8.1+7000/' pubspec.yaml
 
     - name: Create Keystore
       run: |

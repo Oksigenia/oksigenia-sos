@@ -1,4 +1,4 @@
-# Oksigenia SOS 🏔️ v3.8.1
+# Oksigenia SOS 🏔️ v3.8.2
 
 **Outdoor Emergency Assistant | FOSS | Privacy-First**
 
@@ -34,7 +34,7 @@
 
 ---
 
-## 🚀 New in v3.8.1 / Novedades
+## 🚀 New in v3.8.2 / Novedades
 
 | Feature | English | Español |
 |:---|:---|:---|

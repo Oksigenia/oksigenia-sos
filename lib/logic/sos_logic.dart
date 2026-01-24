@@ -24,6 +24,9 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
   String _errorMessage = '';
   static const platform = MethodChannel('com.oksigenia.sos/sms');
   
+  // FIX v3.8.2: Umbral elevado a 8.0G para evitar falsos positivos al saltar
+  static const double _impactThreshold = 8.0;
+
   bool _isFallDetectionActive = false;
   bool _isInactivityMonitorActive = false;
   
@@ -33,7 +36,6 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
   int _currentInactivityLimit = 3600; 
   int get currentInactivityLimit => _currentInactivityLimit;
 
-  // CAMBIO: Variable para la aguja visual
   double _visualGForce = 1.0;
   DateTime _lastMovementTime = DateTime.now();
   
@@ -65,7 +67,6 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
   bool get isInactivityMonitorActive => _isInactivityMonitorActive;
   int get countdownSeconds => _countdownSeconds;
   
-  // CAMBIO: El getter devuelve el valor suavizado para la UI
   double get currentGForce => _visualGForce;
   
   String? get emergencyContact {
@@ -73,31 +74,31 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     return contacts.isNotEmpty ? contacts.first : null;
   }
 
-  // --- INICIO ---
+  // --- INICIO CORREGIDO (v3.8.2) ---
   Future<void> init() async {
     WidgetsBinding.instance.addObserver(this);
     await _loadSettings();
 
+    // 1. Pedir permisos y arrancar Sylvia (Servicio) INMEDIATAMENTE.
+    // Quitamos el Future.delayed para que no se duerma.
+    await _checkPermissions();
+    final service = FlutterBackgroundService();
+    if (!(await service.isRunning())) {
+      await service.startService();
+    }
+
+    // 2. Iniciar sensores y monitores una vez el servicio está en pie.
     _startGForceMonitoring();
     _startHealthMonitor(); 
-
-    Future.delayed(const Duration(milliseconds: 500), () async {
-       await _checkPermissions();
-       final service = FlutterBackgroundService();
-       if (!(await service.isRunning())) {
-         service.startService();
-       }
-       _startPassiveGPS();
-    });
+    _startPassiveGPS();
   }
+  // ---------------------------------
 
-  // --- NUEVO: DETECCIÓN DE AJUSTES RESTRINGIDOS ---
   Future<bool> arePermissionsRestricted() async {
     bool smsRestricted = await Permission.sms.isPermanentlyDenied;
     bool locRestricted = await Permission.location.isPermanentlyDenied;
     return smsRestricted || locRestricted;
   }
-  // -----------------------------------------------
 
   void _startHealthMonitor() {
     _checkHealth();
@@ -170,32 +171,26 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     } catch (e) { debugPrint("Passive GPS Error: $e"); }
   }
 
-  // --- FUNCIÓN DEL SENSOR CORREGIDA (HOTFIX v3.8.1) ---
   void _startGForceMonitoring() {
     _accelerometerSubscription?.cancel();
     try {
-      // Usamos gameInterval (20ms) para precisión
       _accelerometerSubscription = accelerometerEventStream(samplingPeriod: SensorInterval.gameInterval)
         .listen((AccelerometerEvent event) {
           double rawMagnitude = sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
           double instantG = rawMagnitude / 9.81;
 
-          // Lógica de visualización (Peak Hold & Decay)
-          // Si el valor sube, sube rápido. Si baja, baja lento para que el ojo lo vea.
           if (instantG > _visualGForce) {
             _visualGForce = instantG;
           } else {
             _visualGForce = (_visualGForce * 0.90) + (instantG * 0.10);
           }
 
-          // Inactividad (Sensibilidad baja para detectar movimiento leve)
           if ((instantG > 1.2 || instantG < 0.8)) {
              _lastMovementTime = DateTime.now();
           }
           
-          // UMBRAL DE CAÍDA ENDURECIDO: 4.2G
-          // Evita falsos positivos por saltos o sacudidas.
-          if (_isFallDetectionActive && instantG > 4.2 && (_status == SOSStatus.ready || _status == SOSStatus.locationFixed)) {
+          // FIX v3.8.2: Usamos la variable _impactThreshold (8.0G)
+          if (_isFallDetectionActive && instantG > _impactThreshold && (_status == SOSStatus.ready || _status == SOSStatus.locationFixed)) {
             debugPrint("💥 IMPACTO DETECTADO: ${instantG.toStringAsFixed(2)} G");
             _triggerPreAlert(AlertCause.fall);
           }
@@ -203,7 +198,6 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
         }, onError: (e) => debugPrint("Sensor Error: $e"));
     } catch (e) { debugPrint("Error iniciando acelerómetro: $e"); }
   }
-  // ----------------------------------------------------
 
   Future<void> _checkPermissions() async {
     await [Permission.location, Permission.sms, Permission.notification].request();
