@@ -28,9 +28,9 @@
 
 | Dashboard | Menu & Config | Impact Alert |
 |:---:|:---:|:---:|
-| <img src="assets/images/screenshots/screen_main.jpg" width="185" alt="Home Screen Dashboard" /> | <img src="assets/images/screenshots/screen_settings.jpg" width="185" alt="Settings Menu" /> | <img src="assets/images/screenshots/screen_alert.jpg" width="185" alt="Red Alert Impact" /> |
+| <img src="screenshots/screen_main.jpg" width="185" alt="Home Screen Dashboard" /> | <img src="screenshots/screen_settings.jpg" width="185" alt="Settings Menu" /> | <img src="screenshots/screen_alert.jpg" width="185" alt="Red Alert Impact" /> |
 | **Inactivity Alert** | **Test Mode & Status** | **Success / Enviado** |
-| <img src="assets/images/screenshots/screen_alert_inactivity.jpg" width="185" alt="Red Alert Inactivity" /> | <img src="assets/images/screenshots/screen_testmode.jpg" width="185" alt="Test Mode Dashboard" /> | <img src="assets/images/screenshots/screen_send.jpg" width="185" alt="Success Blue Screen" /> |
+| <img src="screenshots/screen_alert_inactivity.jpg" width="185" alt="Red Alert Inactivity" /> | <img src="screenshots/screen_testmode.jpg" width="185" alt="Test Mode Dashboard" /> | <img src="screenshots/screen_send.jpg" width="185" alt="Success Blue Screen" /> |
 
 ---
 
