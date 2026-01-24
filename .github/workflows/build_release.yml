@@ -32,10 +32,13 @@ jobs:
     - name: Get Dependencies
       run: flutter pub get
 
-    # --- FIRMA DE LA APP ---
+    # --- FIRMA DE LA APP (VERSIÓN BLINDADA) ---
     - name: Create Keystore & Properties
       run: |
-        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+        # LIMPIEZA: Quitamos espacios y saltos de línea antes de decodificar
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | tr -d '\n\r ' | base64 --decode > android/app/upload-keystore.jks
+        
+        # CREACIÓN DE PROPIEDADES
         echo "storePassword=${{ secrets.KEY_PASSWORD }}" > android/key.properties
         echo "keyPassword=${{ secrets.ALIAS_PASSWORD }}" >> android/key.properties
         echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
