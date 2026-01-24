@@ -252,4 +252,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get donateClose => 'CLOSE';
+
+  @override
+  String get alertSendingIn => 'Sending alert in...';
+
+  @override
+  String get alertCancel => 'CANCEL';
+
+  @override
+  String get warningKeepAlive =>
+      '⚠️ IMPORTANT: Do not swipe-close the app (Task Manager). Leave it in background so it can auto-restart.';
+
+  @override
+  String get aboutTitle => 'About';
+
+  @override
+  String get aboutVersion => 'Version';
+
+  @override
+  String get aboutDisclaimer => 'Legal Disclaimer';
+
+  @override
+  String get aboutPrivacy => 'Privacy Policy';
+
+  @override
+  String get aboutSourceCode => 'Source Code (GitHub)';
+
+  @override
+  String get aboutLicenses => 'Software Licenses';
+
+  @override
+  String get aboutDevelopedBy => 'Developed with ❤️ by Oksigenia';
+
+  @override
+  String get dialogClose => 'Close';
 }

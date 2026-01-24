@@ -2,8 +2,9 @@ import 'dart:async';
 import 'dart:io'; 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:oksigenia_sos/l10n/app_localizations.dart'; // <--- IMPORT FÍSICO
-import '../main.dart'; 
+import 'package:oksigenia_sos/l10n/app_localizations.dart';
+// IMPORTANTE: Ahora apuntamos al nuevo archivo de la pantalla principal
+import 'package:oksigenia_sos/screens/home_screen.dart'; 
 
 class DisclaimerScreen extends StatefulWidget {
   const DisclaimerScreen({super.key});
@@ -44,6 +45,7 @@ class _DisclaimerScreenState extends State<DisclaimerScreen> {
 
     if (mounted) {
       Navigator.of(context).pushReplacement(
+        // CORREGIDO: Navegamos a HomeScreen
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
     }

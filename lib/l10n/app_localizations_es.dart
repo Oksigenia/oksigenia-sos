@@ -254,4 +254,38 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get donateClose => 'CERRAR';
+
+  @override
+  String get alertSendingIn => 'Enviando alerta en...';
+
+  @override
+  String get alertCancel => 'CANCELAR';
+
+  @override
+  String get warningKeepAlive =>
+      '⚠️ IMPORTANTE: No cierres la app deslizando (Multitarea). Déjala en 2º plano para que reinicie sola si apagas el móvil.';
+
+  @override
+  String get aboutTitle => 'Acerca de';
+
+  @override
+  String get aboutVersion => 'Versión';
+
+  @override
+  String get aboutDisclaimer => 'Aviso Legal';
+
+  @override
+  String get aboutPrivacy => 'Política de Privacidad';
+
+  @override
+  String get aboutSourceCode => 'Código Fuente (GitHub)';
+
+  @override
+  String get aboutLicenses => 'Licencias de Software';
+
+  @override
+  String get aboutDevelopedBy => 'Desarrollado con ❤️ por Oksigenia';
+
+  @override
+  String get dialogClose => 'Cerrar';
 }

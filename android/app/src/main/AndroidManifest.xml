@@ -9,10 +9,13 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <queries>
         <intent>
@@ -37,9 +40,8 @@
         
         <receiver
             android:name="id.flutter.flutter_background_service.BootReceiver"
-            android:enabled="false"
-            android:exported="false"
-            tools:node="replace" />
+            android:enabled="true"
+            android:exported="true" />
 
         <activity
             android:name=".MainActivity"
@@ -63,7 +65,7 @@
             android:foregroundServiceType="location|dataSync"
             android:enabled="true"
             android:exported="false"
-            tools:replace="android:exported" />
+            tools:replace="android:foregroundServiceType, android:exported" />
 
         <meta-data android:name="flutterEmbedding" android:value="2" />
     </application>

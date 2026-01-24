@@ -76,5 +76,16 @@
     "donateDialogTitle": "💎 Apoya el Proyecto",
     "donateDialogBody": "Esta app es Software Libre y Gratuito. Si te da seguridad, invítanos a un café para mantener los servidores.",
     "donateBtn": "Donar con PayPal",
-    "donateClose": "CERRAR"
+    "donateClose": "CERRAR",
+    "alertSendingIn": "Enviando alerta en...",
+    "alertCancel": "CANCELAR",
+    "warningKeepAlive": "⚠️ IMPORTANTE: No cierres la app deslizando (Multitarea). Déjala en 2º plano para que reinicie sola si apagas el móvil.",
+    "aboutTitle": "Acerca de",
+    "aboutVersion": "Versión",
+    "aboutDisclaimer": "Aviso Legal",
+    "aboutPrivacy": "Política de Privacidad",
+    "aboutSourceCode": "Código Fuente (GitHub)",
+    "aboutLicenses": "Licencias de Software",
+    "aboutDevelopedBy": "Desarrollado con ❤️ por Oksigenia",
+    "dialogClose": "Cerrar"
 }

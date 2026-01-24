@@ -76,5 +76,16 @@
     "donateDialogTitle": "💎 Support the Project",
     "donateDialogBody": "This app is Free & Open Source Software. If it keeps you safe, buy us a coffee.",
     "donateBtn": "Donate via PayPal",
-    "donateClose": "CLOSE"
+    "donateClose": "CLOSE",
+    "alertSendingIn": "Sending alert in...",
+    "alertCancel": "CANCEL",
+    "warningKeepAlive": "⚠️ IMPORTANT: Do not swipe-close the app (Task Manager). Leave it in background so it can auto-restart.",
+    "aboutTitle": "About",
+    "aboutVersion": "Version",
+    "aboutDisclaimer": "Legal Disclaimer",
+    "aboutPrivacy": "Privacy Policy",
+    "aboutSourceCode": "Source Code (GitHub)",
+    "aboutLicenses": "Software Licenses",
+    "aboutDevelopedBy": "Developed with ❤️ by Oksigenia",
+    "dialogClose": "Close"
 }

@@ -110,10 +110,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get btnImOkay => 'ESTOU BEM';
 
   @override
-  String get disclaimerTitle => '⚠️ AVISO LEGAL E PRIVACIDAD';
+  String get disclaimerTitle => '⚠️ AVISO LEGAL E PRIVACIDADE';
 
   @override
-  String get disclaimerText => 'Oksigenia SOS é uma ferramenta de apoio.';
+  String get disclaimerText =>
+      'Oksigenia SOS é uma ferramenta de apoio, não um substituto para serviços de emergência profissionais. A sua operação depende de fatores externos: bateria, sinal GPS e cobertura móvel.\n\nAo ativar esta aplicação, aceita que o software é fornecido \'tal como está\' e isenta os desenvolvedores de responsabilidade legal por falhas técnicas. É responsável pela sua própria segurança.';
 
   @override
   String get btnAccept => 'ACEITO O RISCO';
@@ -125,7 +126,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get privacyTitle => 'Termos e Privacidade';
 
   @override
-  String get privacyPolicyContent => 'POLÍTICA DE PRIVACIDAD Y TÉRMINOS';
+  String get privacyPolicyContent =>
+      'POLÍTICA DE PRIVACIDADE E TERMOS\n\n1. SEM COLETA DE DADOS\nOksigenia SOS funciona localmente. Não enviamos dados para a nuvem nem vendemos as suas informações.\n\n2. PERMISSÕES\n- Localização: Para coordenadas em caso de alerta.\n- SMS: Exclusivamente para enviar a mensagem de socorro.\n\n3. LIMITAÇÃO DE RESPONSABILIDADE\nA aplicação é entregue \'tal como está\'. Não nos responsabilizamos por falhas de cobertura ou hardware.';
 
   @override
   String get advSettingsTitle => 'Funções Avançadas';
@@ -246,4 +248,38 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get donateClose => 'FECHAR';
+
+  @override
+  String get alertSendingIn => 'A enviar alerta em...';
+
+  @override
+  String get alertCancel => 'CANCELAR';
+
+  @override
+  String get warningKeepAlive =>
+      '⚠️ IMPORTANTE: Não feche a aplicação deslizando o dedo (Gestor de Tarefas). Deixe-a em segundo plano para que possa reiniciar automaticamente.';
+
+  @override
+  String get aboutTitle => 'Sobre';
+
+  @override
+  String get aboutVersion => 'Versão';
+
+  @override
+  String get aboutDisclaimer => 'Aviso Legal';
+
+  @override
+  String get aboutPrivacy => 'Política de Privacidade';
+
+  @override
+  String get aboutSourceCode => 'Código-fonte (GitHub)';
+
+  @override
+  String get aboutLicenses => 'Licenças de Software';
+
+  @override
+  String get aboutDevelopedBy => 'Desenvolvido com ❤️ por Oksigenia';
+
+  @override
+  String get dialogClose => 'Fechar';
 }

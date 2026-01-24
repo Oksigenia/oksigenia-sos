@@ -1,0 +1,53 @@
+name: Build Android Release
+
+on:
+  push:
+    branches: [ "main" ]
+    tags:
+      - 'v*'
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.x'
+        channel: 'stable'
+
+    - name: Get Dependencies
+      run: flutter pub get
+
+    # --- FIRMA DE LA APP ---
+    - name: Create Keystore & Properties
+      run: |
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+        echo "storePassword=${{ secrets.KEY_PASSWORD }}" > android/key.properties
+        echo "keyPassword=${{ secrets.ALIAS_PASSWORD }}" >> android/key.properties
+        echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+        echo "storeFile=upload-keystore.jks" >> android/key.properties
+
+    # --- COMPILACIÓN RELEASE REAL ---
+    - name: Build Split APKs (Release)
+      run: flutter build apk --release --split-per-abi --no-shrink
+
+    # --- SUBIDA DE ARTEFACTOS ---
+    - name: Upload APKs to GitHub
+      uses: actions/upload-artifact@v4
+      with:
+        name: oksigenia-release-apks
+        path: build/app/outputs/flutter-apk/*-release.apk

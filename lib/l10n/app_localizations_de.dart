@@ -109,11 +109,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get btnImOkay => 'MIR GEHT ES GUT';
 
   @override
-  String get disclaimerTitle => '⚠️ HINWEIS';
+  String get disclaimerTitle => '⚠️ RECHTLICHER HINWEIS & DATENSCHUTZ';
 
   @override
   String get disclaimerText =>
-      'Oksigenia SOS ist ein Tool, kein Ersatz für professionelle Rettungsdienste.';
+      'Oksigenia SOS ist ein Hilfsmittel, kein Ersatz für professionelle Rettungsdienste. Der Betrieb hängt von externen Faktoren ab: Batterie, GPS-Signal und Mobilfunkabdeckung.\n\nDurch die Aktivierung dieser App akzeptieren Sie, dass die Software \'wie besehen\' bereitgestellt wird, und befreien die Entwickler von der rechtlichen Haftung für technische Ausfälle. Sie sind für Ihre eigene Sicherheit verantwortlich.';
 
   @override
   String get btnAccept => 'AKZEPTIEREN';
@@ -122,10 +122,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get btnDecline => 'BEENDEN';
 
   @override
-  String get privacyTitle => 'Bedingungen';
+  String get privacyTitle => 'Nutzungsbedingungen & Datenschutz';
 
   @override
-  String get privacyPolicyContent => 'DATENSCHUTZ.';
+  String get privacyPolicyContent =>
+      'DATENSCHUTZRICHTLINIE & BEDINGUNGEN\n\n1. KEINE DATENSAMMLUNG\nOksigenia SOS arbeitet lokal. Wir laden keine Daten in die Cloud hoch und verkaufen Ihre Informationen nicht.\n\n2. BERECHTIGUNGEN\n- Standort: Für Koordinaten im Alarmfall.\n- SMS: Ausschließlich zum Senden der Notrufnachricht.\n\n3. HAFTUNGSBESCHRÄNKUNG\nDie App wird \'wie besehen\' bereitgestellt. Wir haften nicht für Netzabdeckungs- oder Hardwarefehler.';
 
   @override
   String get advSettingsTitle => 'Erweiterte Funktionen';
@@ -247,4 +248,38 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get donateClose => 'SCHLIESSEN';
+
+  @override
+  String get alertSendingIn => 'Warnung wird gesendet...';
+
+  @override
+  String get alertCancel => 'ABBRECHEN';
+
+  @override
+  String get warningKeepAlive =>
+      '⚠️ WICHTIG: Schließen Sie die App (Task-Manager) nicht durch Wischen. Lassen Sie sie im Hintergrund, damit sie automatisch neu gestartet werden kann.';
+
+  @override
+  String get aboutTitle => 'Über';
+
+  @override
+  String get aboutVersion => 'Version';
+
+  @override
+  String get aboutDisclaimer => 'Rechtliche Hinweise';
+
+  @override
+  String get aboutPrivacy => 'Datenschutzerklärung';
+
+  @override
+  String get aboutSourceCode => 'Quellcode (GitHub)';
+
+  @override
+  String get aboutLicenses => 'Softwarelizenzen';
+
+  @override
+  String get aboutDevelopedBy => 'Entwickelt mit ❤️ von Oksigenia';
+
+  @override
+  String get dialogClose => 'Schließen';
 }

@@ -571,6 +571,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'CLOSE'**
   String get donateClose;
+
+  /// No description provided for @alertSendingIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending alert in...'**
+  String get alertSendingIn;
+
+  /// No description provided for @alertCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'CANCEL'**
+  String get alertCancel;
+
+  /// No description provided for @warningKeepAlive.
+  ///
+  /// In en, this message translates to:
+  /// **'⚠️ IMPORTANT: Do not swipe-close the app (Task Manager). Leave it in background so it can auto-restart.'**
+  String get warningKeepAlive;
+
+  /// No description provided for @aboutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get aboutTitle;
+
+  /// No description provided for @aboutVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get aboutVersion;
+
+  /// No description provided for @aboutDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal Disclaimer'**
+  String get aboutDisclaimer;
+
+  /// No description provided for @aboutPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get aboutPrivacy;
+
+  /// No description provided for @aboutSourceCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Source Code (GitHub)'**
+  String get aboutSourceCode;
+
+  /// No description provided for @aboutLicenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Software Licenses'**
+  String get aboutLicenses;
+
+  /// No description provided for @aboutDevelopedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Developed with ❤️ by Oksigenia'**
+  String get aboutDevelopedBy;
+
+  /// No description provided for @dialogClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get dialogClose;
 }
 
 class _AppLocalizationsDelegate
