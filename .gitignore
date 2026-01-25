@@ -50,3 +50,7 @@ key.properties
 **/*.jks
 /android/key.properties
 /android/app/upload-keystore.jks
+
+# Basura de informes
+problems-report.html
+/doc/api/
