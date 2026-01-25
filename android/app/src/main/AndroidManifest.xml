@@ -71,7 +71,7 @@
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/ic_stat_oksigenia" />
+            android:resource="@drawable/ic_bg_service_small" />
         
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
