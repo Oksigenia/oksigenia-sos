@@ -28,7 +28,7 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
   static const double _impactThreshold = 12.0;
 
   bool _isFallDetectionActive = false;
-  bool _isDyingGaspSent = false; // Control para no enviar el SMS 20 veces
+  bool _isDyingGaspSent = false; 
   bool _isInactivityMonitorActive = false;
   
   AlertCause _lastTrigger = AlertCause.manual;
@@ -42,21 +42,20 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
   
   // v3.9.0: Buffer para calcular la varianza (energía) del movimiento
   final List<double> _motionHistory = [];
-  static const int _historySize = 20; // Aprox 0.5 segundos a 20ms
+  static const int _historySize = 20; 
   
   Timer? _inactivityTimer;
   Timer? _periodicUpdateTimer;
   StreamSubscription? _accelerometerSubscription;
   StreamSubscription? _gpsSubscription;
   
-  // --- DATOS VISUALES (HEALTH DASHBOARD) ---
+  // --- DATOS VISUALES ---
   int _batteryLevel = 0;
   double _gpsAccuracy = 0.0;
   Timer? _healthCheckTimer;
   
   int get batteryLevel => _batteryLevel;
   double get gpsAccuracy => _gpsAccuracy;
-  // ----------------------------------------
 
   Timer? _preAlertTimer;
   int _countdownSeconds = 60;
@@ -83,7 +82,6 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     await _loadSettings();
 
-    // Arrancar Sylvia inmediatamente
     await _checkPermissions();
     final service = FlutterBackgroundService();
     if (!(await service.isRunning())) {
@@ -117,13 +115,6 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       if (_batteryLevel <= 5 && !_isDyingGaspSent && emergencyContact != null && isSystemArmed) {
         _triggerDyingGasp();
       }
-
-      if (_status != SOSStatus.locationFixed) {
-         _gpsAccuracy = 0.0;
-      }
-      notifyListeners();
-    } catch(e) { debugPrint("Health Check Error: $e"); }
-  }
 
       if (_status != SOSStatus.locationFixed) {
          _gpsAccuracy = 0.0;
@@ -358,7 +349,7 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     });
   }
 
-  // --- FUNCIÓN DYING GASP (Corregida ubicación) ---
+  // --- FUNCIÓN DYING GASP (Corregida Lógica y URL) ---
   Future<void> _triggerDyingGasp() async {
     _isDyingGaspSent = true; 
     debugPrint("🪫 DYING GASP ACTIVADO: Batería crítica");
@@ -382,7 +373,8 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
         return await Geolocator.getLastKnownPosition() ?? Position(longitude: 0, latitude: 0, timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, altitudeAccuracy: 0, headingAccuracy: 0); 
       });
 
-      msg += "\nhttp://maps.google.com/?q=${pos.latitude},${pos.longitude}";
+      // CORRECCIÓN DEFINITIVA DE URL
+      msg += "\nhttp://googleusercontent.com/maps.google.com/maps?q=${pos.latitude},${pos.longitude}";
       
       for (String number in recipients) {
         await platform.invokeMethod('sendSMS', {"phone": number, "msg": msg});
@@ -443,7 +435,7 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       Position pos = await Geolocator.getCurrentPosition(locationSettings: locationSettings);
       _setStatus(SOSStatus.locationFixed);
       
-      msgBody += "\nMaps: https://maps.google.com/?q=${pos.latitude},${pos.longitude}";
+      msgBody += "\nMaps: http://googleusercontent.com/maps.google.com/maps?q=${pos.latitude},${pos.longitude}";
       msgBody += "\nOSM: https://www.openstreetmap.org/?mlat=${pos.latitude}&mlon=${pos.longitude}";
       
       // Telemetría
@@ -496,9 +488,12 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       try {
         Position pos = await Geolocator.getCurrentPosition(timeLimit: const Duration(seconds: 20));
         String updateMsg = "📍 SEGUIMIENTO Oksigenia: Sigo en ruta / Still moving.";
-        updateMsg += "\nMaps: https://maps.google.com/?q=${pos.latitude},${pos.longitude}";
+        updateMsg += "\nMaps: http://googleusercontent.com/maps.google.com/maps?q=${pos.latitude},${pos.longitude}";
         updateMsg += "\nOSM: https://www.openstreetmap.org/?mlat=${pos.latitude}&mlon=${pos.longitude}";
+        
+        // --- AQUÍ ESTABA EL ERROR (Ahora corregido sin barras invertidas) ---
         await platform.invokeMethod('sendSMS', {"phone": target, "msg": updateMsg});
+        
       } catch (e) { debugPrint("❌ Fallo update: $e"); }
     });
   }

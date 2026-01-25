@@ -1,4 +1,4 @@
-# Oksigenia SOS 🏔️ v3.8.3
+# Oksigenia SOS 🏔️ v3.9.0
 
 **Outdoor Emergency Assistant | FOSS | Privacy-First**
 
@@ -34,15 +34,15 @@
 
 ---
 
-## 🚀 New in v3.8.3 / Novedades
+## 🚀 New in v3.9.0 / Novedades
 
 | Feature | English | Español |
 |:---|:---|:---|
-| 🚦 **Health Dashboard** | **Visual Status**. New main screen indicators for G-Force, Battery %, and GPS Accuracy. Know your system status at a glance. | **Semáforo de Salud**. Nuevos indicadores en pantalla principal: Fuerza G, Batería % y Precisión GPS. Estado del sistema de un vistazo. |
-| 📡 **Smart Telemetry** | **Rich SMS**. Emergency messages now include Battery level, Altitude, and GPS Accuracy to help rescuers gauge the situation. | **SMS Enriquecido**. Los mensajes de socorro ahora incluyen nivel de Batería, Altitud y Precisión GPS para ayudar al rescate. |
-| 🔊 **Audio Feedback** | **Confirmation Beep**. Distinctive sound plays when the SOS SMS is successfully sent, even if the phone is silenced. | **Confirmación Sonora**. Un sonido distintivo confirma el envío exitoso del SMS, incluso con el móvil en silencio. |
-| 🛡️ **Android 14 Ready** | **Restricted Settings Tutorial**. Smart detection if Android blocks permissions, guiding users to unlock them manually. | **Tutorial Anti-Restricciones**. Detección inteligente si Android bloquea permisos, guiando al usuario para desbloquearlos. |
-| 🔒 **Remote Kill-Switch** | **Safety First**. The app checks for critical updates on startup to ensure no obsolete versions are used in emergencies. | **Seguridad Remota**. La app verifica actualizaciones críticas al inicio para evitar el uso de versiones obsoletas en emergencias. |
+| 🪫 **Dying Gasp** | **Last Breath Alert**. If battery drops below 5% while monitoring is active, an automatic SOS with location is sent before the phone dies. | **El Último Suspiro**. Si la batería baja del 5% con el monitor activo, envía un SOS automático con ubicación antes de apagarse. |
+| 📉 **Smart Motion** | **Variance Algorithm**. New physics engine distinguishes between active movement (stairs, jogging) and actual stillness, reducing false alarms. | **Algoritmo de Varianza**. Nuevo motor físico que distingue entre movimiento activo (escaleras, trote) e inmovilidad real, reduciendo falsas alarmas. |
+| 🎨 **UI Redesign** | **High Visibility**. Larger dashboard icons (48dp) and precise G-Force decimals for better readability under stress. | **Alta Visibilidad**. Iconos del panel más grandes (48dp) y fuerza G con decimales precisos para mejor lectura bajo estrés. |
+| 👻 **Status Icon** | **Clean Notification**. Fixed status bar icon rendering (silhouette) to comply with Android 14 standards. | **Icono de Estado**. Icono de barra de estado (silueta) corregido para cumplir con los estándares de Android 14. |
+| 📡 **Rich Telemetry** | **Enhanced SOS**. (From v3.8) Messages now include Altitude, Battery %, and Accuracy to help rescuers gauge the context. | **Telemetría Avanzada**. (Desde v3.8) Los mensajes incluyen Altitud, Batería % y Precisión para dar contexto al rescate. |
 
 ---
 
