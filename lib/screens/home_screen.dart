@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:permission_handler/permission_handler.dart'; // <--- IMPORTANTE PARA openAppSettings()
+import 'package:permission_handler/permission_handler.dart'; 
 import 'package:oksigenia_sos/l10n/app_localizations.dart';
 import 'package:oksigenia_sos/logic/sos_logic.dart';
 import 'package:oksigenia_sos/widgets/main_drawer.dart';
@@ -34,17 +34,14 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     });
 
-    // 2. Verificación Remota (Kill Switch / Mensajes)
+    // 2. Verificación Remota
     _checkRemoteConfig();
   }
 
-  // Función para consultar al servidor
   void _checkRemoteConfig() async {
     final result = await RemoteConfigService().checkStatus();
-    
     if (!mounted) return;
 
-    // CASO 1: BLOQUEO TOTAL (Versión obsoleta)
     if (result['block'] == true) {
       Navigator.pushReplacement(
         context, 
@@ -53,9 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    // CASO 2: MENSAJE INFORMATIVO
     String msgEs = result['message_es'] ?? "";
-    // Solo mostramos si es un mensaje especial, no el genérico "Sistema Activo"
     if (msgEs.isNotEmpty && !msgEs.contains("Sistema Oksigenia SOS Activo")) {
        ScaffoldMessenger.of(context).showSnackBar(
          SnackBar(
@@ -138,39 +133,51 @@ class _HomeScreenState extends State<HomeScreen> {
             
             const SizedBox(height: 25),
 
-            // HEALTH DASHBOARD (Semáforo Visual)
+            // HEALTH DASHBOARD MEJORADO (Iconos Grandes + Decimales)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
+                  // G-Force
                   Column(
                     children: [
-                      const Icon(Icons.speed, color: Colors.grey, size: 24),
-                      const SizedBox(height: 4),
-                      Text("${_sosLogic.currentGForce.toStringAsFixed(1)}G", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      const Icon(Icons.speed, color: Colors.grey, size: 36), // Aumentado a 36
+                      const SizedBox(height: 6),
+                      Text(
+                        "${_sosLogic.currentGForce.toStringAsFixed(2)}G", // 2 Decimales
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)
+                      ),
                     ],
                   ),
+                  // Batería
                   Column(
                     children: [
                       Icon(
                         _sosLogic.batteryLevel > 20 ? Icons.battery_std : Icons.battery_alert, 
                         color: _sosLogic.batteryLevel > 20 ? Colors.green : Colors.red, 
-                        size: 24
+                        size: 36 // Aumentado a 36
                       ),
-                      const SizedBox(height: 4),
-                      Text("${_sosLogic.batteryLevel}%", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      const SizedBox(height: 6),
+                      Text(
+                        "${_sosLogic.batteryLevel}%", 
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)
+                      ),
                     ],
                   ),
+                  // GPS
                   Column(
                     children: [
                       Icon(
                         Icons.gps_fixed, 
                         color: _sosLogic.gpsAccuracy > 0 ? Colors.green : Colors.grey, 
-                        size: 24
+                        size: 36 // Aumentado a 36
                       ),
-                      const SizedBox(height: 4),
-                      Text(_sosLogic.gpsAccuracy > 0 ? "${_sosLogic.gpsAccuracy.toStringAsFixed(0)}m" : "--", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      const SizedBox(height: 6),
+                      Text(
+                        _sosLogic.gpsAccuracy > 0 ? "${_sosLogic.gpsAccuracy.toStringAsFixed(0)}m" : "--", 
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)
+                      ),
                     ],
                   ),
                 ],
@@ -179,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 25),
 
-            // BOTÓN SOS GIGANTE
+            // BOTÓN SOS
             GestureDetector(
               onLongPress: _sosLogic.sendSOS,
               child: Container(
@@ -235,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-            // INTERRUPTORES INTELIGENTES (Verifican permisos antes de activar)
+            // INTERRUPTORES INTELIGENTES
             _buildQuickToggle(
               context, 
               l10n.autoModeLabel, 
@@ -295,7 +302,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // WIDGET INTERRUPTOR MEJORADO (Intercepta restricciones)
   Widget _buildQuickToggle(BuildContext context, String label, bool value, Function(bool) onChanged, IconData icon) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 5),
@@ -304,16 +310,13 @@ class _HomeScreenState extends State<HomeScreen> {
         secondary: Icon(icon, color: value ? Colors.redAccent : Colors.grey),
         value: value, 
         onChanged: (newValue) async {
-          // 1. Si intenta activar (newValue == true), verificamos restricciones primero
           if (newValue) {
             bool restricted = await _sosLogic.arePermissionsRestricted();
             if (restricted) {
-               // Si está restringido, mostramos el Tutorial y NO activamos
                if (mounted) _showRestrictedDialog(context);
                return; 
             }
           }
-          // 2. Si todo OK (o si está desactivando), procedemos normal
           onChanged(newValue);
         },
         activeColor: Colors.redAccent,
@@ -321,7 +324,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // DIÁLOGO TUTORIAL PARA AJUSTES RESTRINGIDOS
   void _showRestrictedDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -337,39 +339,19 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              "Android ha restringido los permisos de seguridad (SMS o GPS) porque la app no se instaló desde Play Store.",
+              "Android ha restringido los permisos de seguridad (SMS o GPS).",
               style: TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 15),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("CÓMO DESBLOQUEAR:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                  SizedBox(height: 5),
-                  Text("1. Pulsa 'IR A AJUSTES' abajo.", style: TextStyle(fontSize: 12)),
-                  Text("2. Busca los 3 puntitos (arriba dcha).", style: TextStyle(fontSize: 12)),
-                  Text("3. Elige 'Permitir ajustes restringidos'.", style: TextStyle(fontSize: 12)),
-                ],
-              ),
-            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                openAppSettings(); 
+              },
+              child: const Text("IR A AJUSTES"),
+            )
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text("CANCELAR", style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              openAppSettings(); // Abre los ajustes de Android para esta app
-            },
-            child: const Text("IR A AJUSTES"),
-          )
-        ],
       ),
     );
   }
@@ -422,7 +404,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSentUI(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      // CAMBIO: Usamos un azul más "Material Design" (como la versión anterior)
       backgroundColor: const Color(0xFF2196F3), 
       body: SafeArea(
         child: Container(
@@ -431,7 +412,6 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Icono con círculo blanco de fondo para resaltar
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
@@ -443,7 +423,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 40),
               
               Text(
-                l10n.statusSent, // "Alerta enviada con éxito"
+                l10n.statusSent, 
                 textAlign: TextAlign.center, 
                 style: const TextStyle(
                   fontSize: 26, 
@@ -454,7 +434,6 @@ class _HomeScreenState extends State<HomeScreen> {
               
               const SizedBox(height: 20),
               
-              // Información de estado (Monitor detenido) un poco más sutil
               const Text(
                 "Monitor detenido / Monitor stopped.\nPantalla apagada en breve / Screen sleeping soon.",
                 textAlign: TextAlign.center,
@@ -463,14 +442,13 @@ class _HomeScreenState extends State<HomeScreen> {
               
               const Spacer(),
               
-              // Botón blanco y limpio
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _sosLogic.cancelAlert, 
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white, 
-                    foregroundColor: const Color(0xFF1976D2), // Texto azul oscuro
+                    foregroundColor: const Color(0xFF1976D2), 
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                     elevation: 5,

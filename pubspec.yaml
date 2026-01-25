@@ -46,10 +46,12 @@ flutter:
     - assets/images/
 
 flutter_launcher_icons:
-  android: "ic_launcher"
+  android: "launcher_icon"
   ios: true
   image_path: "assets/images/icon.png" # Para Androids antiguos (Legacy)
   min_sdk_android: 21
+# Esto genera el icono transparente para la barra de estado
+  notification_icon: "ic_stat_oksigenia"
 
   # --- CONFIGURACIÓN ADAPTATIVA ---
   # Esto genera el XML que separa fondo y frente, igual que Proton Mail.

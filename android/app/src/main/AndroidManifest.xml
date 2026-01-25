@@ -35,7 +35,7 @@
    <application
         android:label="Oksigenia SOS"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/launcher_icon"
         android:enableOnBackInvokedCallback="true">
         
         <receiver
@@ -68,5 +68,13 @@
             tools:replace="android:foregroundServiceType, android:exported" />
 
         <meta-data android:name="flutterEmbedding" android:value="2" />
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_oksigenia" />
+        
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/colorAccent" />
     </application>
 </manifest>

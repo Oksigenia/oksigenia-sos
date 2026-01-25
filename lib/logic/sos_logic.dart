@@ -24,10 +24,11 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
   String _errorMessage = '';
   static const platform = MethodChannel('com.oksigenia.sos/sms');
   
-  // FIX v3.8.3: Umbral subido a 12.0G para evitar saltos fuertes
+  // v3.9.0: Mantenemos 12G para impactos catastróficos.
   static const double _impactThreshold = 12.0;
 
   bool _isFallDetectionActive = false;
+  bool _isDyingGaspSent = false; // Control para no enviar el SMS 20 veces
   bool _isInactivityMonitorActive = false;
   
   AlertCause _lastTrigger = AlertCause.manual;
@@ -38,6 +39,10 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
 
   double _visualGForce = 1.0;
   DateTime _lastMovementTime = DateTime.now();
+  
+  // v3.9.0: Buffer para calcular la varianza (energía) del movimiento
+  final List<double> _motionHistory = [];
+  static const int _historySize = 20; // Aprox 0.5 segundos a 20ms
   
   Timer? _inactivityTimer;
   Timer? _periodicUpdateTimer;
@@ -74,24 +79,21 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     return contacts.isNotEmpty ? contacts.first : null;
   }
 
-  // --- INICIO CORREGIDO (v3.8.2/3) ---
   Future<void> init() async {
     WidgetsBinding.instance.addObserver(this);
     await _loadSettings();
 
-    // 1. Pedir permisos y arrancar Sylvia (Servicio) INMEDIATAMENTE.
+    // Arrancar Sylvia inmediatamente
     await _checkPermissions();
     final service = FlutterBackgroundService();
     if (!(await service.isRunning())) {
       await service.startService();
     }
 
-    // 2. Iniciar sensores y monitores una vez el servicio está en pie.
     _startGForceMonitoring();
     _startHealthMonitor(); 
     _startPassiveGPS();
   }
-  // ---------------------------------
 
   Future<bool> arePermissionsRestricted() async {
     bool smsRestricted = await Permission.sms.isPermanentlyDenied;
@@ -107,6 +109,13 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> _checkHealth() async {
     try {
       _batteryLevel = await _battery.batteryLevel;
+      
+      // Lógica Dying Gasp (Último Suspiro)
+      // MODO TEST: <= 90 (Cambiar a <= 5 para producción)
+      if (_batteryLevel <= 90 && !_isDyingGaspSent && emergencyContact != null) {
+        _triggerDyingGasp();
+      }
+
       if (_status != SOSStatus.locationFixed) {
          _gpsAccuracy = 0.0;
       }
@@ -170,6 +179,7 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     } catch (e) { debugPrint("Passive GPS Error: $e"); }
   }
 
+  // --- NÚCLEO FÍSICO v3.9.0 (Smart Variance) ---
   void _startGForceMonitoring() {
     _accelerometerSubscription?.cancel();
     try {
@@ -179,22 +189,30 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
           double instantG = rawMagnitude / 9.81;
 
           if (instantG > _visualGForce) {
-            _visualGForce = instantG;
+            _visualGForce = instantG; 
           } else {
-            _visualGForce = (_visualGForce * 0.90) + (instantG * 0.10);
+            _visualGForce = (_visualGForce * 0.90) + (instantG * 0.10); 
           }
 
-          // FIX v3.8.3: Rango estrechado (1.1 / 0.9) para detectar movimientos sutiles
-          // Esto evita que la alarma de inactividad salte mientras caminas suave o subes escaleras
-          if ((instantG > 1.1 || instantG < 0.9)) {
-             _lastMovementTime = DateTime.now();
+          _motionHistory.add(instantG);
+          if (_motionHistory.length > _historySize) {
+            _motionHistory.removeAt(0);
+          }
+
+          if (_motionHistory.length >= _historySize) {
+             double mean = _motionHistory.reduce((a, b) => a + b) / _motionHistory.length;
+             double variance = _motionHistory.map((g) => pow(g - mean, 2)).reduce((a, b) => a + b) / _motionHistory.length;
+             
+             if (variance > 0.005) { 
+               _lastMovementTime = DateTime.now();
+             }
           }
           
-          // FIX v3.8.3: Usamos el nuevo umbral de 12.0G
           if (_isFallDetectionActive && instantG > _impactThreshold && (_status == SOSStatus.ready || _status == SOSStatus.locationFixed)) {
-            debugPrint("💥 IMPACTO DETECTADO: ${instantG.toStringAsFixed(2)} G");
+            debugPrint("💥 IMPACTO DURO: ${instantG.toStringAsFixed(2)} G");
             _triggerPreAlert(AlertCause.fall);
           }
+          
           notifyListeners();
         }, onError: (e) => debugPrint("Sensor Error: $e"));
     } catch (e) { debugPrint("Error iniciando acelerómetro: $e"); }
@@ -276,7 +294,9 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       _lastMovementTime = DateTime.now();
       _inactivityTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
         if (_status != SOSStatus.ready && _status != SOSStatus.locationFixed) return;
+        
         if (DateTime.now().difference(_lastMovementTime).inSeconds > _currentInactivityLimit) {
+          debugPrint("💤 ALERTA: Inactividad detectada (Varianza baja por demasiado tiempo)");
           _triggerPreAlert(AlertCause.inactivity);
         }
       });
@@ -323,10 +343,45 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
         }
         notifyListeners();
       } else {
-        _stopAllAlerts();    
+        _stopAllAlerts();
         sendSOS();                
       }
     });
+  }
+
+  // --- FUNCIÓN DYING GASP (Corregida ubicación) ---
+  Future<void> _triggerDyingGasp() async {
+    _isDyingGaspSent = true; 
+    debugPrint("🪫 DYING GASP ACTIVADO: Batería crítica");
+
+    final prefs = PreferencesService();
+    final List<String> recipients = prefs.getContacts();
+    if (recipients.isEmpty) return;
+
+    final sharedPrefs = await SharedPreferences.getInstance();
+    String lang = sharedPrefs.getString('language_code') ?? 'en';
+    
+    String msg = "⚠️ LOW BATTERY (<5%). System shutting down. Last known loc:";
+    if (lang == 'es') msg = "⚠️ BATERÍA CRÍTICA (<5%). Me apago. Última ubicación:";
+    else if (lang == 'fr') msg = "⚠️ BATTERIE FAIBLE (<5%). Arrêt système. Loc:";
+    else if (lang == 'de') msg = "⚠️ AKKU LEER (<5%). System schaltet ab. Standort:";
+    
+    try {
+      Position pos = await Geolocator.getCurrentPosition(
+        timeLimit: const Duration(seconds: 5)
+      ).catchError((_) async {
+        return await Geolocator.getLastKnownPosition() ?? Position(longitude: 0, latitude: 0, timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, altitudeAccuracy: 0, headingAccuracy: 0); 
+      });
+
+      msg += "\nhttp://maps.google.com/?q=${pos.latitude},${pos.longitude}";
+      
+      for (String number in recipients) {
+        await platform.invokeMethod('sendSMS', {"phone": number, "msg": msg});
+      }
+      debugPrint("🪫 Dying Gasp SMS enviado a ${recipients.length} contactos.");
+    } catch (e) {
+      debugPrint("❌ Fallo en Dying Gasp: $e");
+    }
   }
 
   void cancelAlert() async {
