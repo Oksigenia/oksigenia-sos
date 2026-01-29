@@ -93,5 +93,13 @@
     "btnAdd": "HINZUFÜGEN",
     "noContacts": "Keine Kontakte konfiguriert.",
     "inactivityTitle": "Inaktivitätszeit",
-    "inactivitySubtitle": "Zeit ohne Bewegung vor dem Notruf."
+    "invalidNumberWarning": "Ungültige oder zu kurze Nummer",
+    "contactMain": "Hauptkontakt (Tracking / Akku)",
+    "inactivitySubtitle": "Zeit ohne Bewegung vor dem Notruf.",
+    "dialogPermissionTitle": "Berechtigungen aktivieren",
+    "dialogPermissionStep1": "1. Tippen Sie unten auf 'EINSTELLUNGEN'.",
+    "dialogPermissionStep2": "2. Tippen Sie im neuen Bildschirm oben rechts auf die 3 Punkte (⠇).",
+    "dialogPermissionStep3": "3. Wählen Sie 'Eingeschränkte Einstellungen zulassen' (falls sichtbar).",
+    "dialogPermissionStep4": "4. Kehren Sie zu dieser App zurück.",
+    "btnGoToSettings": "ZU DEN EINSTELLUNGEN"
 }

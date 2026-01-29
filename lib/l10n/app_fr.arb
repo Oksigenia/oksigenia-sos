@@ -93,5 +93,13 @@
     "btnAdd": "AJOUTER",
     "noContacts": "Aucun contact configuré.",
     "inactivityTitle": "Temps d'inactivité",
-    "inactivitySubtitle": "Temps sans mouvement avant l'appel à l'aide."
+    "invalidNumberWarning": "Numéro invalide ou trop court",
+    "contactMain": "Principal (Suivi / Batterie)",
+    "inactivitySubtitle": "Temps sans mouvement avant l'appel à l'aide.",
+    "dialogPermissionTitle": "Comment activer les permissions",
+    "dialogPermissionStep1": "1. Touchez 'ALLER AUX PARAMÈTRES' ci-dessous.",
+    "dialogPermissionStep2": "2. Sur le nouvel écran, touchez les 3 points (⠇) en haut à droite.",
+    "dialogPermissionStep3": "3. Sélectionnez 'Autoriser les paramètres restreints' (si visible).",
+    "dialogPermissionStep4": "4. Revenez à cette application.",
+    "btnGoToSettings": "ALLER AUX PARAMÈTRES"
 }

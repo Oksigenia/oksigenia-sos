@@ -1,4 +1,4 @@
-# Oksigenia SOS 🏔️ v3.9.0
+# Oksigenia SOS 🏔️ v3.9.1
 
 **Outdoor Emergency Assistant | FOSS | Privacy-First**
 
@@ -24,25 +24,27 @@
 
 ---
 
-## 📸 Interface / Interfaz
+## 📸 Interface / Interfaz (v3.9.1)
 
-| Dashboard | Menu & Config | Impact Alert |
-|:---:|:---:|:---:|
-| <img src="screenshots/screen_main.jpg" width="185" alt="Home Screen Dashboard" /> | <img src="screenshots/screen_settings.jpg" width="185" alt="Settings Menu" /> | <img src="screenshots/screen_alert.jpg" width="185" alt="Red Alert Impact" /> |
-| **Inactivity Alert** | **Test Mode & Status** | **Success / Enviado** |
-| <img src="screenshots/screen_alert_inactivity.jpg" width="185" alt="Red Alert Inactivity" /> | <img src="screenshots/screen_testmode.jpg" width="185" alt="Test Mode Dashboard" /> | <img src="screenshots/screen_send.jpg" width="185" alt="Success Blue Screen" /> |
+| Dashboard | Impact Alert | Settings | Menu |
+|:---:|:---:|:---:|:---:|
+| <img src="screenshots/main_en.jpg" width="185" alt="Main Dashboard" /> | <img src="screenshots/impact_en.jpg" width="185" alt="Impact Alert Red" /> | <img src="screenshots/settings_en.jpg" width="185" alt="Settings Star Contact" /> | <img src="screenshots/menu_en.jpg" width="185" alt="Navigation Drawer" /> |
+
+| Inactivity Alert | Test Mode | Languages | About / Legal |
+|:---:|:---:|:---:|:---:|
+| <img src="screenshots/inactivity_en.jpg" width="185" alt="Inactivity Alert" /> | <img src="screenshots/main_testmode_en.jpg" width="185" alt="Test Mode Warning" /> | <img src="screenshots/lang_en.jpg" width="185" alt="Language Selector" /> | <img src="screenshots/About_en.jpg" width="185" alt="About Screen" /> |
 
 ---
 
-## 🚀 New in v3.9.0 / Novedades
+## 🚀 Evolution v3.9.x (The Face-Lift)
 
 | Feature | English | Español |
 |:---|:---|:---|
+| 🚨 **Circular UX** | **New Countdown UI**. (v3.9.1) Replaced the static counter with a dynamic red circular indicator to reduce user anxiety during false alarms. Shows clearly if the trigger was an **Impact** or **Inactivity**. | **Nueva UI Circular**. (v3.9.1) Reemplazo del contador estático por un indicador circular rojo dinámico para reducir la ansiedad en falsas alarmas. Indica claramente si fue **Impacto** o **Inactividad**. |
+| 🛡️ **Stability Core** | **Rock-Solid Reliability**. (v3.9.1) Fixed rotation issues (locked to Portrait), enhanced background service persistence, and solved GPS initialization bugs. | **Estabilidad Total**. (v3.9.1) Corrección de rotación (fijado en Vertical), mejora en la persistencia del servicio en segundo plano y solución de bugs de GPS. |
 | 🪫 **Dying Gasp** | **Last Breath Alert**. If battery drops below 5% while monitoring is active, an automatic SOS with location is sent before the phone dies. | **El Último Suspiro**. Si la batería baja del 5% con el monitor activo, envía un SOS automático con ubicación antes de apagarse. |
-| 📉 **Smart Motion** | **High-Sensitivity Algorithm**. New physics engine distinguishes between active movement (stairs, jogging) and actual stillness, reducing false alarms. | **Algoritmo de Alta Sensibilidad**. Nuevo motor físico que distingue entre movimiento activo (escaleras, trote) e inmovilidad real, reduciendo falsas alarmas. |
-| 🎨 **UI Redesign** | **High Visibility**. Larger dashboard icons (48dp) and precise G-Force decimals for better readability under stress. | **Alta Visibilidad**. Iconos del panel más grandes (48dp) y fuerza G con decimales precisos para mejor lectura bajo estrés. |
-| 👻 **Status Icon** | **Clean Notification**. Fixed status bar icon rendering (silhouette) to comply with Android 14 standards. | **Icono de Estado**. Icono de barra de estado (silueta) corregido para cumplir con los estándares de Android 14. |
-| 📡 **Rich Telemetry** | **Enhanced SOS**. (From v3.8) Messages now include Altitude, Battery %, and Accuracy to help rescuers gauge the context. | **Telemetría Avanzada**. (Desde v3.8) Los mensajes incluyen Altitud, Batería % y Precisión para dar contexto al rescate. |
+| 📉 **Smart Motion** | **High-Sensitivity Algorithm**. Physics engine distinguishes between active movement (stairs, jogging) and actual stillness, reducing false alarms. | **Algoritmo de Alta Sensibilidad**. Motor físico que distingue entre movimiento activo (escaleras, trote) e inmovilidad real, reduciendo falsas alarmas. |
+| 📡 **Rich Telemetry** | **Enhanced SOS**. Messages now include Altitude, Battery %, and Accuracy to help rescuers gauge the context. | **Telemetría Avanzada**. Los mensajes incluyen Altitud, Batería % y Precisión para dar contexto al rescate. |
 
 ---
 
@@ -73,7 +75,7 @@
 ## 🛠️ Download & Build
 
 ### 📦 Download APK
-Check the **[Releases Section](https://github.com/OksigeniaSL/oksigenia-sos/releases)** for the latest signed APKs (Split APKs available for reduced size).
+Check the **[Releases Section](https://github.com/OksigeniaSL/oksigenia-sos/releases)** for the latest signed APKs.
 
 ### 💻 Build from source
 ```bash

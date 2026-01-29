@@ -51,9 +51,68 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
     } catch (_) {}
   }
 
+  // 🛡️ VALIDADOR DE NÚMEROS
+  bool _isValidPhoneNumber(String input) {
+    String cleanInput = input.trim();
+    if (cleanInput.isEmpty) return false;
+
+    // 1. Regex: Solo permite números, +, espacios y guiones
+    final RegExp validCharacters = RegExp(r'^[+0-9\-\s]+$');
+    if (!validCharacters.hasMatch(cleanInput)) return false;
+
+    // 2. Conteo de dígitos reales:
+    String justDigits = cleanInput.replaceAll(RegExp(r'[^0-9]'), '');
+    return justDigits.length >= 6;
+  }
+
+  // 💡 NUEVO: Diálogo de ayuda para permisos restringidos (Android 13+)
+  void _showPermissionGuide(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.dialogPermissionTitle), // "Cómo activar..."
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.dialogPermissionStep1),
+            const SizedBox(height: 8),
+            Text(l10n.dialogPermissionStep2, style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(l10n.dialogPermissionStep3),
+            const SizedBox(height: 8),
+            Text(l10n.dialogPermissionStep4),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.dialogClose ?? "Cerrar"), // Usamos dialogClose genérico si existe, o hardcode fallback
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              openAppSettings(); // Ahora sí vamos a ajustes
+            },
+            child: Text(l10n.btnGoToSettings),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    
+    // Auto-guardado al salir (CON VALIDACIÓN)
+    String pendingPhone = _phoneController.text.trim();
+    if (_isValidPhoneNumber(pendingPhone) && !_contacts.contains(pendingPhone)) {
+       PreferencesService().addContact(pendingPhone);
+    }
+
     _phoneController.dispose();
     _messageController.dispose();
     super.dispose();
@@ -84,25 +143,41 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
   }
 
   void _addContact() {
-    // REGLA: No permite añadir si no hay permisos
+    final l10n = AppLocalizations.of(context)!;
+
+    // 1. Chequeo de Permisos
     if (!_isSmsPermissionGranted) {
-      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("⚠️ ${l10n.permSmsText}"), 
-          backgroundColor: Colors.red,
-        )
+        SnackBar(content: Text("⚠️ ${l10n.permSmsText}"), backgroundColor: Colors.red)
       );
       return;
     }
 
     String phone = _phoneController.text.trim();
-    if (phone.isNotEmpty && !_contacts.contains(phone)) {
+
+    // 2. Chequeo de Validación (Usando la traducción nueva)
+    if (!_isValidPhoneNumber(phone)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("⚠️ ${l10n.invalidNumberWarning}"), 
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 2),
+        )
+      );
+      return;
+    }
+
+    // 3. Añadir si no está repetido
+    if (!_contacts.contains(phone)) {
       setState(() {
         _contacts.add(phone);
         _phoneController.clear();
       });
       PreferencesService().addContact(phone);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("⚠️ Contacto duplicado / Duplicate"))
+      );
     }
   }
 
@@ -161,7 +236,8 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                     ]),
                     const SizedBox(height: 10),
                     ElevatedButton.icon(
-                      onPressed: () => openAppSettings(),
+                      // 👇 AQUÍ SE ACTIVA EL TUTORIAL
+                      onPressed: () => _showPermissionGuide(context),
                       icon: const Icon(Icons.settings_applications),
                       label: Text(l10n.permSmsButton),
                       style: ElevatedButton.styleFrom(
@@ -186,6 +262,7 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                       prefixIcon: const Icon(Icons.phone),
                     ),
                     keyboardType: TextInputType.phone,
+                    onSubmitted: (_) => _addContact(),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -196,20 +273,44 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
               ],
             ),
             const SizedBox(height: 10),
+            
+            // LISTA DE CONTACTOS CON JERARQUÍA VISUAL
             if (_contacts.isEmpty)
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(l10n.noContacts, style: const TextStyle(color: Colors.red)),
               )
             else
-              ..._contacts.map((c) => ListTile(
-                leading: const Icon(Icons.person),
-                title: Text(c),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _removeContact(c),
-                ),
-              )),
+              ..._contacts.asMap().entries.map((entry) {
+                int index = entry.key;
+                String phone = entry.value;
+                bool isPrimary = (index == 0);
+
+                return Card(
+                  elevation: isPrimary ? 2 : 0,
+                  color: isPrimary ? Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3) : null,
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  child: ListTile(
+                    leading: isPrimary 
+                      ? const Icon(Icons.star, color: Colors.amber, size: 28) 
+                      : const Icon(Icons.person),
+                    title: Text(
+                      phone,
+                      style: TextStyle(
+                        fontWeight: isPrimary ? FontWeight.bold : FontWeight.normal,
+                        fontSize: isPrimary ? 18 : 16,
+                      ),
+                    ),
+                    subtitle: isPrimary 
+                      ? Text(l10n.contactMain, style: TextStyle(color: Colors.amber[800], fontSize: 12)) 
+                      : null,
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => _removeContact(phone),
+                    ),
+                  ),
+                );
+              }),
 
             const Divider(height: 40),
 
@@ -249,7 +350,9 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                 ),
               ),
             ),
-/* BLOQUE A OCULTAR TEMPORALMENTE (TRACKING)
+            
+            // 👇 BLOQUE RECUPERADO
+            /*
             const Divider(height: 40),
 
             Text(l10n.trackingTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -274,6 +377,7 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
               ),
             ),
             */
+            // 👆 FIN BLOQUE RECUPERADO
             
             const SizedBox(height: 50),
           ],

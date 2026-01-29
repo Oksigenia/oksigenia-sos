@@ -93,5 +93,13 @@
     "btnAdd": "ADICIONAR",
     "noContacts": "Nenhum contato configurado.",
     "inactivityTitle": "Tempo de Inatividade",
-    "inactivitySubtitle": "Tempo sem movimento antes de pedir ajuda."
+    "invalidNumberWarning": "Número inválido ou muito curto",
+    "contactMain": "Principal (Rastreio / Bateria)",
+    "inactivitySubtitle": "Tempo sem movimento antes de pedir ajuda.",
+    "dialogPermissionTitle": "Como ativar permissões",
+    "dialogPermissionStep1": "1. Toque em 'IR PARA DEFINIÇÕES' abaixo.",
+    "dialogPermissionStep2": "2. No novo ecrã, toque nos 3 pontos (⠇) no canto superior direito.",
+    "dialogPermissionStep3": "3. Selecione 'Permitir definições restritas' (se visível).",
+    "dialogPermissionStep4": "4. Volte a esta aplicação.",
+    "btnGoToSettings": "IR PARA DEFINIÇÕES"
 }

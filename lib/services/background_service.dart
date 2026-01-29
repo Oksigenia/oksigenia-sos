@@ -4,6 +4,9 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// 🧠 MEMORIA DE SYLVIA (Variable global para el aislamiento)
+String? _lastContent;
+
 Future<void> initializeService() async {
   final service = FlutterBackgroundService();
 
@@ -15,8 +18,7 @@ Future<void> initializeService() async {
       autoStart: true, 
       isForegroundMode: false, 
       
-      notificationChannelId: 'oksigenia_sos_modular_v1', 
-      
+      notificationChannelId: 'oksigenia_sos_modular_v1',       
       initialNotificationTitle: 'OKSIGENIA SOS',
       initialNotificationContent: 'Iniciando...',
       
@@ -37,16 +39,16 @@ void onStart(ServiceInstance service) async {
   if (service is AndroidServiceInstance) {
     // 1. AUTO-PROMOCIÓN AL INICIO
     Timer(const Duration(seconds: 1), () async {
-      await _updateNotificationText(service);
+      await _updateNotificationText(service, force: true); // Forzamos la primera vez
       service.setAsForegroundService();
       print("SYLVIA: Uniforme puesto al arrancar.");
     });
 
-    // 2. ESCUCHA CAMBIOS DE IDIOMA (NUEVO)
-    // Cuando la App principal nos grite 'updateLanguage', actualizamos el texto al instante.
+    // 2. ESCUCHA CAMBIOS DE IDIOMA
     service.on('updateLanguage').listen((event) async {
       print("SYLVIA: Recibida orden de cambio de idioma.");
-      await _updateNotificationText(service);
+      // Aquí forzamos actualización porque el idioma ha cambiado
+      await _updateNotificationText(service, force: true);
     });
 
     service.on('setAsForeground').listen((event) {
@@ -66,37 +68,51 @@ void onStart(ServiceInstance service) async {
   Timer.periodic(const Duration(seconds: 60), (timer) async {
     if (service is AndroidServiceInstance) {
       bool isForeground = await service.isForegroundService();
-      print("SYLVIA PULSO: ¿Sigo en Foreground? $isForeground");
-      
+      // Solo 'debug print' si realmente pasa algo raro, para no ensuciar la consola
       if (!isForeground) {
         print("SYLVIA: Recuperando rango...");
         service.setAsForegroundService();
-        await _updateNotificationText(service);
+        // Si hemos perdido el foreground, forzamos la notificación para recuperarlo
+        await _updateNotificationText(service, force: true);
+      } else {
+        // Si todo está bien, intentamos actualizar pero "sin molestar"
+        // (Solo actualizará si el texto cambió por alguna razón externa)
+        await _updateNotificationText(service, force: false);
       }
     }
   });
 }
 
-// Función auxiliar para no repetir código
-Future<void> _updateNotificationText(AndroidServiceInstance service) async {
+// 🧠 FUNCIÓN OPTIMIZADA: Solo notifica si hay cambios
+Future<void> _updateNotificationText(AndroidServiceInstance service, {bool force = false}) async {
   try {
     final prefs = await SharedPreferences.getInstance();
-    // Forzamos la recarga de preferencias por si acaso estaban en caché
     await prefs.reload(); 
     final langCode = prefs.getString('language_code') ?? 'es';
     
     String title = "Oksigenia SOS";
-    String content = "Protección activada"; // Español por defecto
+    String content = "Protección activada"; 
 
     if (langCode == 'en') { content = "Protection active"; }
     else if (langCode == 'fr') { content = "Protection active"; }
     else if (langCode == 'pt') { content = "Proteção ativa"; }
     else if (langCode == 'de') { content = "Schutz aktiv"; }
 
+    // ✨ LA MAGIA: Si el texto es igual al anterior y no nos obligan, NO HACEMOS NADA.
+    // Esto evita que Android pite o parpadee innecesariamente.
+    if (!force && content == _lastContent) {
+      return; 
+    }
+
+    // Si cambió o es forzado, actualizamos y guardamos en memoria
+    _lastContent = content;
+
     service.setForegroundNotificationInfo(
       title: title,
       content: content,
     );
+    print("SYLVIA: Notificación actualizada a ($langCode)");
+    
   } catch (e) {
     print("SYLVIA ERROR al traducir: $e");
   }

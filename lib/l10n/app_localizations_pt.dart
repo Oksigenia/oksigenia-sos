@@ -172,7 +172,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get restrictedSettingsBody => 'O Android restringiu esta permissão.';
 
   @override
-  String get btnGoToSettings => 'DEFINIÇÕES';
+  String get btnGoToSettings => 'IR PARA DEFINIÇÕES';
 
   @override
   String get contactsTitle => 'Contactos de Emergência';
@@ -214,7 +214,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get track120 => '⏱️ A cada 2 horas';
 
   @override
-  String get contactMain => 'Principal';
+  String get contactMain => 'Principal (Rastreio / Bateria)';
 
   @override
   String get inactivityTimeTitle => 'Tempo para Alerta';
@@ -300,5 +300,26 @@ class AppLocalizationsPt extends AppLocalizations {
   String get inactivityTitle => 'Tempo de Inatividade';
 
   @override
+  String get invalidNumberWarning => 'Número inválido ou muito curto';
+
+  @override
   String get inactivitySubtitle => 'Tempo sem movimento antes de pedir ajuda.';
+
+  @override
+  String get dialogPermissionTitle => 'Como ativar permissões';
+
+  @override
+  String get dialogPermissionStep1 =>
+      '1. Toque em \'IR PARA DEFINIÇÕES\' abaixo.';
+
+  @override
+  String get dialogPermissionStep2 =>
+      '2. No novo ecrã, toque nos 3 pontos (⠇) no canto superior direito.';
+
+  @override
+  String get dialogPermissionStep3 =>
+      '3. Selecione \'Permitir definições restritas\' (se visível).';
+
+  @override
+  String get dialogPermissionStep4 => '4. Volte a esta aplicação.';
 }

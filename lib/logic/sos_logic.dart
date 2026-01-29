@@ -15,6 +15,10 @@ import 'package:battery_plus/battery_plus.dart';
 import 'package:oksigenia_sos/l10n/app_localizations.dart'; 
 import '../services/preferences_service.dart';
 import '../screens/settings_screen.dart'; 
+import '../screens/countdown_screen.dart'; 
+
+// 🔑 LLAVE MAESTRA DE NAVEGACIÓN
+final GlobalKey<NavigatorState> oksigeniaNavigatorKey = GlobalKey<NavigatorState>();
 
 enum SOSStatus { ready, scanning, locationFixed, preAlert, sent, error }
 enum AlertCause { manual, fall, inactivity, dyingGasp }
@@ -52,7 +56,7 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
   double get gpsAccuracy => _gpsAccuracy;
 
   Timer? _preAlertTimer;
-  int _countdownSeconds = 60;
+  int _countdownSeconds = 30; 
   
   AudioPlayer? _audioPlayer; 
   double _currentVolume = 0.2;
@@ -120,12 +124,10 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       debugPrint("🔄 APP RESUMED: Reactivando sensores UI...");
-      _startGForceMonitoring(); // Aseguramos que esté activo
+      _startGForceMonitoring(); 
       _checkHealth();
       if (_status == SOSStatus.ready) _startPassiveGPS();
     } else if (state == AppLifecycleState.paused) {
-      // CORRECCIÓN CRÍTICA: NO CANCELAR SI ESTAMOS VIGILANDO
-      // Si el monitor está activo, el sensor debe seguir leyendo en background (gracias al Servicio Foreground)
       if (!_isInactivityMonitorActive && !_isFallDetectionActive) {
          _accelerometerSubscription?.cancel();
       } else {
@@ -178,7 +180,6 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     } catch (e) { debugPrint("Passive GPS Error: $e"); }
   }
 
-  // --- NÚCLEO FÍSICO ---
   void _startGForceMonitoring() {
     _accelerometerSubscription?.cancel();
     double lastG = 1.0;
@@ -198,12 +199,10 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
           double delta = (instantG - lastG).abs();
           lastG = instantG;
 
-          // 1. Detección de VIDA
           if (delta > 0.01 || instantG > 1.1 || instantG < 0.9) {
              _lastMovementTime = DateTime.now();
           }
 
-          // 2. Detección de CAÍDA (12G)
           if (_isFallDetectionActive && instantG > _impactThreshold && (_status == SOSStatus.ready || _status == SOSStatus.locationFixed)) {
             debugPrint("💥 IMPACTO DURO: ${instantG.toStringAsFixed(2)} G");
             _triggerPreAlert(AlertCause.fall);
@@ -319,7 +318,7 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     try { await platform.invokeMethod('wakeScreen'); } catch(_) {}
 
     _status = SOSStatus.preAlert;
-    _countdownSeconds = 60;
+    _countdownSeconds = 30; 
     _currentVolume = 0.2;
     notifyListeners();
 
@@ -340,19 +339,41 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       }
     } catch (e) { debugPrint("Vibration Error: $e"); }
 
-    _preAlertTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_countdownSeconds > 0) {
-        _countdownSeconds--;
-        if (_currentVolume < 1.0 && _audioPlayer != null) {
-          _currentVolume += 0.1;
-          _audioPlayer!.setVolume(_currentVolume).catchError((_){});
-        }
-        notifyListeners();
+    // 🚀 ABRIMOS LA PANTALLA CON CAUSA
+    if (oksigeniaNavigatorKey.currentState != null) {
+      debugPrint("🚀 Lanzando UI de Círculo Regresivo...");
+      _preAlertTimer?.cancel();
+
+      final bool? confirmed = await oksigeniaNavigatorKey.currentState!.push(
+        MaterialPageRoute(builder: (_) => CountdownScreen(
+          duration: _countdownSeconds,
+          cause: cause, // 👈 Pasamos la causa (caída/inactividad)
+        ))
+      );
+
+      _stopAllAlerts();
+
+      if (confirmed == true) {
+        sendSOS();
       } else {
-        _stopAllAlerts();
-        sendSOS();                
+        cancelAlert();
       }
-    });
+    } else {
+      debugPrint("⚠️ No se pudo abrir UI (Background), usando timer interno.");
+      _preAlertTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (_countdownSeconds > 0) {
+          _countdownSeconds--;
+          if (_currentVolume < 1.0 && _audioPlayer != null) {
+            _currentVolume += 0.1;
+            _audioPlayer!.setVolume(_currentVolume).catchError((_){});
+          }
+          notifyListeners();
+        } else {
+          _stopAllAlerts();
+          sendSOS();                
+        }
+      });
+    }
   }
 
   Future<void> _triggerDyingGasp() async {
@@ -370,6 +391,7 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     if (lang == 'es') msg = "⚠️ BATERÍA CRÍTICA (<5%). Me apago. Última ubicación:";
     else if (lang == 'fr') msg = "⚠️ BATTERIE FAIBLE (<5%). Arrêt système. Loc:";
     else if (lang == 'de') msg = "⚠️ AKKU LEER (<5%). System schaltet ab. Standort:";
+    else if (lang == 'pt') msg = "⚠️ BATERIA FRACA (<5%). O sistema desliga-se. Loc:";
     
     try {
       Position pos = await Geolocator.getCurrentPosition(
@@ -378,13 +400,11 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
         return await Geolocator.getLastKnownPosition() ?? Position(longitude: 0, latitude: 0, timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, altitudeAccuracy: 0, headingAccuracy: 0); 
       });
 
-      // CORRECCIÓN URL #1 (Standard Maps)
-      msg += "\nhttps://maps.google.com/?q=${pos.latitude},${pos.longitude}";
+      msg += "\nhttp://maps.google.com/?q=${pos.latitude},${pos.longitude}";
       
       for (String number in recipients) {
         await platform.invokeMethod('sendSMS', {"phone": number, "msg": msg});
       }
-      debugPrint("🪫 Dying Gasp SMS enviado a ${recipients.length} contactos.");
     } catch (e) {
       debugPrint("❌ Fallo en Dying Gasp: $e");
     }
@@ -406,6 +426,7 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     try { Vibration.cancel(); } catch(_) {}
   }
 
+  // 🚨 AQUÍ ESTÁ LA CORRECCIÓN DE LA BATERÍA
   Future<void> sendSOS() async {
     final prefs = PreferencesService();
     final List<String> recipients = prefs.getContacts();
@@ -420,6 +441,9 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     _inactivityTimer?.cancel();
     _gpsSubscription?.cancel();
     
+    // 1. OBTENEMOS BATERÍA ANTES QUE EL GPS
+    int batteryLevel = await _battery.batteryLevel;
+
     String msgBody = "🆘 SOS OKSIGENIA";
     if (customNote.isNotEmpty) {
       msgBody += "\n$customNote"; 
@@ -435,19 +459,21 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     }
     
     try {
-      int batteryLevel = await _battery.batteryLevel;
+      // 2. INTENTAMOS OBTENER GPS
       final LocationSettings locationSettings = AndroidSettings(accuracy: LocationAccuracy.high, forceLocationManager: true, timeLimit: const Duration(seconds: 15));
       Position pos = await Geolocator.getCurrentPosition(locationSettings: locationSettings);
       _setStatus(SOSStatus.locationFixed);
       
-      // CORRECCIÓN URL #2
-      msgBody += "\nMaps: https://maps.google.com/?q=${pos.latitude},${pos.longitude}";
+      msgBody += "\nMaps: http://maps.google.com/?q=${pos.latitude},${pos.longitude}";
       msgBody += "\nOSM: https://www.openstreetmap.org/?mlat=${pos.latitude}&mlon=${pos.longitude}";
       
+      // Añadimos telemetría completa
       msgBody += "\n\n🔋Bat: $batteryLevel% | 📡Alt: ${pos.altitude.toStringAsFixed(0)}m | 🎯Acc: ${pos.accuracy.toStringAsFixed(0)}m";
 
     } catch (e) {
+      // 3. SI FALLA GPS, AÑADIMOS ERROR + BATERÍA (Que ya leímos antes)
       msgBody += "\n(GPS Error/Timeout)";
+      msgBody += "\n\n🔋Bat: $batteryLevel% (No Loc)";
     }
 
     int successCount = 0;
@@ -494,8 +520,7 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
         Position pos = await Geolocator.getCurrentPosition(timeLimit: const Duration(seconds: 20));
         String updateMsg = "📍 SEGUIMIENTO Oksigenia: Sigo en ruta / Still moving.";
         
-        // CORRECCIÓN URL #3
-        updateMsg += "\nMaps: https://maps.google.com/?q=${pos.latitude},${pos.longitude}";
+        updateMsg += "\nMaps: http://maps.google.com/?q=${pos.latitude},${pos.longitude}";
         updateMsg += "\nOSM: https://www.openstreetmap.org/?mlat=${pos.latitude}&mlon=${pos.longitude}";
         
         await platform.invokeMethod('sendSMS', {"phone": target, "msg": updateMsg});

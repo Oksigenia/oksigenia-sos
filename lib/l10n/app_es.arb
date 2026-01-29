@@ -93,5 +93,13 @@
     "btnAdd": "AÑADIR",
     "noContacts": "No hay contactos configurados.",
     "inactivityTitle": "Tiempo de Inactividad",
-    "inactivitySubtitle": "Tiempo sin movimiento antes de pedir ayuda."
+    "invalidNumberWarning": "Número inválido o muy corto",
+    "contactMain": "Principal (Tracking / Batería)",
+    "inactivitySubtitle": "Tiempo sin movimiento antes de pedir ayuda.",
+    "dialogPermissionTitle": "Cómo activar el permiso",
+    "dialogPermissionStep1": "1. Toca 'IR A AJUSTES' abajo.",
+    "dialogPermissionStep2": "2. En la nueva pantalla, toca los 3 puntos (⠇) arriba a la derecha.",
+    "dialogPermissionStep3": "3. Selecciona 'Permitir ajustes restringidos' (si aparece).",
+    "dialogPermissionStep4": "4. Vuelve a esta app.",
+    "btnGoToSettings": "IR A AJUSTES"
 }

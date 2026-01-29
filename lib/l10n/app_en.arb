@@ -93,5 +93,13 @@
     "btnAdd": "ADD",
     "noContacts": "No contacts configured.",
     "inactivityTitle": "Inactivity Time",
-    "inactivitySubtitle": "Time without movement before calling for help."
+    "invalidNumberWarning": "Invalid or too short number",
+    "contactMain": "Primary (Tracking / Battery)",
+    "inactivitySubtitle": "Time without movement before calling for help.",
+    "dialogPermissionTitle": "How to enable permissions",
+    "dialogPermissionStep1": "1. Tap 'GO TO SETTINGS' below.",
+    "dialogPermissionStep2": "2. On the new screen, tap the 3 dots (⠇) top right.",
+    "dialogPermissionStep3": "3. Select 'Allow restricted settings' (if visible).",
+    "dialogPermissionStep4": "4. Return to this app.",
+    "btnGoToSettings": "GO TO SETTINGS"
 }

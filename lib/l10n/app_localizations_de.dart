@@ -172,7 +172,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Android hat die Berechtigung eingeschränkt.';
 
   @override
-  String get btnGoToSettings => 'EINSTELLUNGEN';
+  String get btnGoToSettings => 'ZU DEN EINSTELLUNGEN';
 
   @override
   String get contactsTitle => 'Notfallkontakte';
@@ -214,7 +214,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get track120 => '⏱️ 2 Std.';
 
   @override
-  String get contactMain => 'Hauptkontakt';
+  String get contactMain => 'Hauptkontakt (Tracking / Akku)';
 
   @override
   String get inactivityTimeTitle => 'Zeit vor Alarm';
@@ -300,5 +300,26 @@ class AppLocalizationsDe extends AppLocalizations {
   String get inactivityTitle => 'Inaktivitätszeit';
 
   @override
+  String get invalidNumberWarning => 'Ungültige oder zu kurze Nummer';
+
+  @override
   String get inactivitySubtitle => 'Zeit ohne Bewegung vor dem Notruf.';
+
+  @override
+  String get dialogPermissionTitle => 'Berechtigungen aktivieren';
+
+  @override
+  String get dialogPermissionStep1 =>
+      '1. Tippen Sie unten auf \'EINSTELLUNGEN\'.';
+
+  @override
+  String get dialogPermissionStep2 =>
+      '2. Tippen Sie im neuen Bildschirm oben rechts auf die 3 Punkte (⠇).';
+
+  @override
+  String get dialogPermissionStep3 =>
+      '3. Wählen Sie \'Eingeschränkte Einstellungen zulassen\' (falls sichtbar).';
+
+  @override
+  String get dialogPermissionStep4 => '4. Kehren Sie zu dieser App zurück.';
 }

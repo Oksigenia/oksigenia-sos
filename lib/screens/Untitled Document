@@ -1,0 +1,166 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:oksigenia_sos/l10n/app_localizations.dart';
+
+class CountdownScreen extends StatefulWidget {
+  final int duration; // Segundos de cuenta atrás (por defecto 10)
+
+  const CountdownScreen({super.key, this.duration = 10});
+
+  @override
+  State<CountdownScreen> createState() => _CountdownScreenState();
+}
+
+class _CountdownScreenState extends State<CountdownScreen> with TickerProviderStateMixin {
+  late int _remainingSeconds;
+  Timer? _timer;
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _remainingSeconds = widget.duration;
+
+    // Controlador para la animación suave del círculo
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: widget.duration),
+    );
+
+    // Iniciar animación (el círculo se vacía)
+    _controller.reverse(from: 1.0);
+
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          // TIEMPO AGOTADO: Enviamos TRUE (Confirmar SOS)
+          _timer?.cancel();
+          Navigator.of(context).pop(true);
+        }
+      });
+    });
+  }
+
+  void _cancelSOS() {
+    _timer?.cancel();
+    _controller.stop();
+    // CANCELADO: Enviamos FALSE (Abortar SOS)
+    Navigator.of(context).pop(false);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Intentamos obtener textos localizados, si fallan usamos hardcode seguro
+    final l10n = AppLocalizations.of(context);
+    final String txtSending = "ENVIANDO ALERTA EN...";
+    final String txtCancel = "CANCELAR / CANCEL";
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 40),
+            
+            // TÍTULO DE ALERTA
+            Text(
+              txtSending,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+                letterSpacing: 1.2,
+              ),
+            ),
+            
+            const Spacer(),
+
+            // EL CÍRCULO REGRESIVO (Face-Lift UI)
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                // 1. Círculo de fondo (gris clarito)
+                SizedBox(
+                  width: 250,
+                  height: 250,
+                  child: CircularProgressIndicator(
+                    value: 1.0,
+                    strokeWidth: 20,
+                    color: Colors.grey[200],
+                  ),
+                ),
+                // 2. Círculo de progreso (Rojo SOS)
+                SizedBox(
+                  width: 250,
+                  height: 250,
+                  child: AnimatedBuilder(
+                    animation: _controller,
+                    builder: (context, child) {
+                      return CircularProgressIndicator(
+                        value: _controller.value,
+                        strokeWidth: 20,
+                        strokeCap: StrokeCap.round, // Bordes redondeados modernos
+                        color: const Color(0xFFB71C1C), // Rojo Oksigenia
+                      );
+                    },
+                  ),
+                ),
+                // 3. Número en el centro
+                Text(
+                  "$_remainingSeconds",
+                  style: const TextStyle(
+                    fontSize: 80,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFB71C1C),
+                  ),
+                ),
+              ],
+            ),
+
+            const Spacer(),
+
+            // BOTÓN GIGANTE DE CANCELAR
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
+              child: SizedBox(
+                width: double.infinity,
+                height: 60,
+                child: ElevatedButton.icon(
+                  onPressed: _cancelSOS,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[800], // Oscuro para contraste
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  icon: const Icon(Icons.close, size: 30),
+                  label: Text(
+                    txtCancel,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -216,7 +216,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get track120 => '⏱️ Every 2 hours';
 
   @override
-  String get contactMain => 'Main';
+  String get contactMain => 'Primary (Tracking / Battery)';
 
   @override
   String get inactivityTimeTitle => 'Time before Alert';
@@ -304,6 +304,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inactivityTitle => 'Inactivity Time';
 
   @override
+  String get invalidNumberWarning => 'Invalid or too short number';
+
+  @override
   String get inactivitySubtitle =>
       'Time without movement before calling for help.';
+
+  @override
+  String get dialogPermissionTitle => 'How to enable permissions';
+
+  @override
+  String get dialogPermissionStep1 => '1. Tap \'GO TO SETTINGS\' below.';
+
+  @override
+  String get dialogPermissionStep2 =>
+      '2. On the new screen, tap the 3 dots (⠇) top right.';
+
+  @override
+  String get dialogPermissionStep3 =>
+      '3. Select \'Allow restricted settings\' (if visible).';
+
+  @override
+  String get dialogPermissionStep4 => '4. Return to this app.';
 }

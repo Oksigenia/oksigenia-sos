@@ -15,7 +15,6 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-// AÑADIDO: 'with WidgetsBindingObserver' para escuchar cuando la app vuelve al frente
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final SOSLogic _sosLogic = SOSLogic();
   bool _hasShownWarning = false; 
@@ -23,17 +22,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this); // 1. Nos suscribimos a cambios
+    WidgetsBinding.instance.addObserver(this); 
     
     _sosLogic.init();
     WakelockPlus.enable();
     
-    // 2. EL CÓDIGO DE LA 3.8.3 (SEGURO DE VIDA)
-    // Si Sylvia no ha despertado en 1 segundo, la obligamos.
+    // BACKUP DE SEGURIDAD (v3.8.3 Logic)
     Future.delayed(const Duration(seconds: 1), () {
       FlutterBackgroundService().isRunning().then((isRunning) {
         if (!isRunning) {
-          print("SYLVIA: Arrancando servicio forzosamente desde UI (Backup 3.8.3)");
+          print("SYLVIA: Arrancando servicio forzosamente desde UI");
           FlutterBackgroundService().startService();
         }
       });
@@ -67,29 +65,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  // 🚀 ESTE ES EL MÉTODO NUEVO QUE FALTABA
-  // Detecta cuando el usuario vuelve de Ajustes tras dar permisos
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       print("🔄 APP RESUMED: Verificando servicio tras volver de ajustes...");
       FlutterBackgroundService().isRunning().then((isRunning) {
         if (!isRunning) {
-          // Si Sylvia estaba dormida, ¡DESPIERTA!
           FlutterBackgroundService().startService();
         } else {
-           // Si ya estaba despierta, le mandamos refrescar textos por si acaso
            FlutterBackgroundService().invoke("updateLanguage");
         }
       });
-      // Refrescamos la lógica para que detecte que ya tenemos permisos
       _sosLogic.init(); 
     }
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this); // Dejamos de observar
+    WidgetsBinding.instance.removeObserver(this);
     _sosLogic.dispose();
     super.dispose();
   }
@@ -100,10 +93,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       animation: _sosLogic,
       builder: (context, child) {
         return Scaffold(
+          // AppBar limpia: sin color de fondo, toma el del Theme (Main.dart)
           appBar: AppBar(
             title: Text(AppLocalizations.of(context)!.appTitle),
             centerTitle: true,
-            backgroundColor: Colors.white,
             elevation: 0,
           ),
           drawer: MainDrawer(sosLogic: _sosLogic),
@@ -114,6 +107,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildBody(BuildContext context) {
+    // Pantallas de Emergencia (Colores Fijos SIEMPRE)
     if (_sosLogic.status == SOSStatus.preAlert) {
       return _buildPreAlertUI(context);
     }
@@ -124,18 +118,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     final l10n = AppLocalizations.of(context)!;
     
+    // UI Normal (Se adapta a Claro/Oscuro)
     return Center(
       child: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // STATUS PILL
+            // STATUS PILL (Pastilla de estado)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               decoration: BoxDecoration(
+                // Usamos colores con transparencia para que se vean bien en negro y blanco
                 color: _sosLogic.status == SOSStatus.locationFixed 
                     ? Colors.green.withOpacity(0.1) 
-                    : Colors.grey.withOpacity(0.1),
+                    : Colors.grey.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: _sosLogic.status == SOSStatus.locationFixed 
@@ -150,6 +146,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ? l10n.statusConnecting 
                         : l10n.statusReady),
                 style: TextStyle(
+                  // El texto gris se ve bien en ambos modos
                   color: _sosLogic.status == SOSStatus.locationFixed ? Colors.green : Colors.grey,
                   fontWeight: FontWeight.bold
                 ),
@@ -158,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             
             const SizedBox(height: 25),
 
-            // HEALTH DASHBOARD
+            // HEALTH DASHBOARD (Iconos y Datos)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Row(
@@ -171,6 +168,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       const SizedBox(height: 6),
                       Text(
                         "${_sosLogic.currentGForce.toStringAsFixed(2)}G",
+                        // Sin color fijo: será Negro en día, Blanco en noche
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)
                       ),
                     ],
@@ -211,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
             const SizedBox(height: 25),
 
-            // BOTÓN SOS
+            // BOTÓN SOS (Siempre rojo, diseño de marca)
             GestureDetector(
               onLongPress: _sosLogic.sendSOS,
               child: Container(
@@ -242,6 +240,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             const SizedBox(height: 30),
 
             // AVISO MODO TEST
+            // MANTENEMOS los colores fijos aquí (Fondo claro + Texto negro)
+            // para garantizar legibilidad incluso en modo noche.
             if (_sosLogic.currentInactivityLimit == 30) 
               Padding(
                 padding: const EdgeInsets.only(bottom: 20, left: 30, right: 30),
@@ -267,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
               ),
 
-            // INTERRUPTORES
+            // INTERRUPTORES (Texto automático según tema)
             _buildQuickToggle(
               context, 
               l10n.autoModeLabel, 
@@ -331,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 5),
       child: SwitchListTile(
-        title: Text(label),
+        title: Text(label), // Texto sin estilo: hereda color del Theme
         secondary: Icon(icon, color: value ? Colors.redAccent : Colors.grey),
         value: value, 
         onChanged: (newValue) async {

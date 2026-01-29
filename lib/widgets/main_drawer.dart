@@ -17,20 +17,43 @@ class MainDrawer extends StatelessWidget {
     
     return Drawer(
       child: ListView(
+        // padding: EdgeInsets.zero es CRÍTICO para que el color rojo suba hasta el borde superior de la pantalla
         padding: EdgeInsets.zero,
         children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(color: Color(0xFFB71C1C)),
+          // 🛠️ FIX: Usamos Container en lugar de DrawerHeader para evitar el "Overflow"
+          Container(
+            width: double.infinity,
+            color: const Color(0xFFB71C1C),
+            padding: const EdgeInsets.only(
+              top: 60, // Espacio seguro para la barra de estado (status bar)
+              bottom: 20,
+              left: 20,
+              right: 20
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.monitor_heart, color: Colors.white, size: 40),
-                const SizedBox(height: 10),
-                const Text("Oksigenia SOS", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                Text(l10n.motto, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                // Tu logo blanco grande (sin que corte la pantalla)
+                Image.asset(
+                  'assets/images/logo_white.png',
+                  height: 80, 
+                  width: 80,
+                ),
+                const SizedBox(height: 15),
+                const Text(
+                  "Oksigenia SOS", 
+                  style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  l10n.motto, 
+                  style: const TextStyle(color: Colors.white70, fontSize: 13)
+                ),
               ],
             ),
           ),
+          
+          // El resto del menú sigue igual
           ListTile(
             leading: const Icon(Icons.language),
             title: Text(l10n.menuLanguages),
@@ -47,9 +70,6 @@ class MainDrawer extends StatelessWidget {
               sosLogic.openSettings(context);
             },
           ),
-          
-          // --- AQUÍ HEMOS QUITADO EL BOTÓN DE PRIVACIDAD REDUNDANTE ---
-
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: Text(l10n.aboutTitle),

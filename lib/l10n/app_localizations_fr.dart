@@ -174,7 +174,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Android a restreint cette autorisation.';
 
   @override
-  String get btnGoToSettings => 'PARAMÈTRES';
+  String get btnGoToSettings => 'ALLER AUX PARAMÈTRES';
 
   @override
   String get contactsTitle => 'Contacts d\'Urgence';
@@ -216,7 +216,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get track120 => '⏱️ Toutes les 2 h';
 
   @override
-  String get contactMain => 'Principal';
+  String get contactMain => 'Principal (Suivi / Batterie)';
 
   @override
   String get inactivityTimeTitle => 'Délai avant Alerte';
@@ -302,6 +302,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get inactivityTitle => 'Temps d\'inactivité';
 
   @override
+  String get invalidNumberWarning => 'Numéro invalide ou trop court';
+
+  @override
   String get inactivitySubtitle =>
       'Temps sans mouvement avant l\'appel à l\'aide.';
+
+  @override
+  String get dialogPermissionTitle => 'Comment activer les permissions';
+
+  @override
+  String get dialogPermissionStep1 =>
+      '1. Touchez \'ALLER AUX PARAMÈTRES\' ci-dessous.';
+
+  @override
+  String get dialogPermissionStep2 =>
+      '2. Sur le nouvel écran, touchez les 3 points (⠇) en haut à droite.';
+
+  @override
+  String get dialogPermissionStep3 =>
+      '3. Sélectionnez \'Autoriser les paramètres restreints\' (si visible).';
+
+  @override
+  String get dialogPermissionStep4 => '4. Revenez à cette application.';
 }

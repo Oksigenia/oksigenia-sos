@@ -503,7 +503,7 @@ abstract class AppLocalizations {
   /// No description provided for @contactMain.
   ///
   /// In en, this message translates to:
-  /// **'Main'**
+  /// **'Primary (Tracking / Battery)'**
   String get contactMain;
 
   /// No description provided for @inactivityTimeTitle.
@@ -668,11 +668,47 @@ abstract class AppLocalizations {
   /// **'Inactivity Time'**
   String get inactivityTitle;
 
+  /// No description provided for @invalidNumberWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid or too short number'**
+  String get invalidNumberWarning;
+
   /// No description provided for @inactivitySubtitle.
   ///
   /// In en, this message translates to:
   /// **'Time without movement before calling for help.'**
   String get inactivitySubtitle;
+
+  /// No description provided for @dialogPermissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How to enable permissions'**
+  String get dialogPermissionTitle;
+
+  /// No description provided for @dialogPermissionStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Tap \'GO TO SETTINGS\' below.'**
+  String get dialogPermissionStep1;
+
+  /// No description provided for @dialogPermissionStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'2. On the new screen, tap the 3 dots (⠇) top right.'**
+  String get dialogPermissionStep2;
+
+  /// No description provided for @dialogPermissionStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'3. Select \'Allow restricted settings\' (if visible).'**
+  String get dialogPermissionStep3;
+
+  /// No description provided for @dialogPermissionStep4.
+  ///
+  /// In en, this message translates to:
+  /// **'4. Return to this app.'**
+  String get dialogPermissionStep4;
 }
 
 class _AppLocalizationsDelegate

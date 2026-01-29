@@ -217,7 +217,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get track120 => '⏱️ Cada 2 horas';
 
   @override
-  String get contactMain => 'Principal';
+  String get contactMain => 'Principal (Tracking / Batería)';
 
   @override
   String get inactivityTimeTitle => 'Tiempo para Alerta';
@@ -306,6 +306,26 @@ class AppLocalizationsEs extends AppLocalizations {
   String get inactivityTitle => 'Tiempo de Inactividad';
 
   @override
+  String get invalidNumberWarning => 'Número inválido o muy corto';
+
+  @override
   String get inactivitySubtitle =>
       'Tiempo sin movimiento antes de pedir ayuda.';
+
+  @override
+  String get dialogPermissionTitle => 'Cómo activar el permiso';
+
+  @override
+  String get dialogPermissionStep1 => '1. Toca \'IR A AJUSTES\' abajo.';
+
+  @override
+  String get dialogPermissionStep2 =>
+      '2. En la nueva pantalla, toca los 3 puntos (⠇) arriba a la derecha.';
+
+  @override
+  String get dialogPermissionStep3 =>
+      '3. Selecciona \'Permitir ajustes restringidos\' (si aparece).';
+
+  @override
+  String get dialogPermissionStep4 => '4. Vuelve a esta app.';
 }

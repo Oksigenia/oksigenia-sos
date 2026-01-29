@@ -2,32 +2,53 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; 
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart'; 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oksigenia_sos/l10n/app_localizations.dart';
 import 'package:oksigenia_sos/services/preferences_service.dart';
-import 'package:oksigenia_sos/services/background_service.dart';
+import 'package:oksigenia_sos/services/background_service.dart'; 
 import 'package:oksigenia_sos/screens/disclaimer_screen.dart';
 import 'package:oksigenia_sos/screens/home_screen.dart';
+import 'package:oksigenia_sos/logic/sos_logic.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 🔒 BLOQUEO DE ROTACIÓN
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
   
+  // 1. INICIALIZACIÓN BÁSICA
   await PreferencesService().init(); 
   final prefs = await SharedPreferences.getInstance();
 
-  // Esto hará que la pantalla de inicio (splash) dure 1 segundo más, 
-  // pero garantiza que Sylvia despierte tras un reinicio del móvil.
-  // ESTA ES LA BUENA (v3.8.3 Style)
+  // 2. DESPERTAR A SYLVIA
   await initializeService(); 
   
   final bool accepted = prefs.getBool('disclaimer_accepted') ?? false;
   final String? savedLang = prefs.getString('language_code');
 
+  // 3. INICIALIZAR EL CEREBRO (Lógica SOS)
+  final sosLogic = SOSLogic();
+  
+  // 🛑 CORRECCIÓN: Solo arrancamos la lógica (y pedimos permisos)
+  // si el usuario YA ha aceptado el disclaimer anteriormente.
+  // Si es nuevo, la lógica se iniciará cuando entre al HomeScreen.
+  if (accepted) {
+    await sosLogic.init();
+  }
+
   runApp(
-    OksigeniaApp(
-      initialAccepted: accepted,
-      savedLanguage: savedLang,
-    )
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: sosLogic),
+      ],
+      child: OksigeniaApp(
+        initialAccepted: accepted,
+        savedLanguage: savedLang,
+      ),
+    ),
   );
 }
 
@@ -56,10 +77,6 @@ class _OksigeniaAppState extends State<OksigeniaApp> {
   @override
   void initState() {
     super.initState();
-    // 🚀 AQUÍ DESPERTAMOS A SYLVIA
-    // Al hacerlo aquí, la app ya está cargando y no bloqueamos el splash screen.
-    // Además, al estar en el hilo de la UI, Android prioriza este proceso.
-    // initializeService();
     if (widget.savedLanguage != null) {
       _locale = Locale(widget.savedLanguage!);
     }
@@ -73,7 +90,6 @@ class _OksigeniaAppState extends State<OksigeniaApp> {
 
   @override
   Widget build(BuildContext context) {
-    // Forzamos el modo claro en la barra de sistema para evitar el negro en el arranque
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark, 
@@ -82,14 +98,31 @@ class _OksigeniaAppState extends State<OksigeniaApp> {
     ));
 
     return MaterialApp(
+      navigatorKey: oksigeniaNavigatorKey,
+
       debugShowCheckedModeBanner: false,
       title: 'Oksigenia SOS',
+      
       theme: ThemeData(
         brightness: Brightness.light,
         scaffoldBackgroundColor: Colors.white,
-        primarySwatch: Colors.red,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFB71C1C), 
+          brightness: Brightness.light,
+        ),
         useMaterial3: true,
       ),
+
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFB71C1C), 
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+      ),
+      themeMode: ThemeMode.system, 
+
       locale: _locale,
       supportedLocales: const [
         Locale('en'), 
@@ -104,6 +137,7 @@ class _OksigeniaAppState extends State<OksigeniaApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      
       home: widget.initialAccepted 
           ? const HomeScreen() 
           : const DisclaimerScreen(),

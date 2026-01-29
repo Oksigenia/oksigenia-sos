@@ -1,7 +1,7 @@
 name: oksigenia_sos
 description: "Outdoor Emergency Assistant"
 publish_to: 'none'
-version: 3.9.0+30900
+version: 3.9.1+30901
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -31,6 +31,7 @@ dependencies:
   battery_plus: ^7.0.0
   http: ^1.6.0
   package_info_plus: ^9.0.0
+  provider: ^6.1.5+1
 
 dev_dependencies:
   flutter_test:
@@ -48,12 +49,11 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/icon.png" # Para Androids antiguos (Legacy)
+  image_path: "assets/images/icon.png"
   min_sdk_android: 21
-# Esto genera el icono transparente para la barra de estado
-  notification_icon: "ic_stat_oksigenia"
+  adaptive_icon_background: "assets/icon/ic_background.png"
+  adaptive_icon_foreground: "assets/icon/ic_foreground.png"
 
-  # --- CONFIGURACIÓN ADAPTATIVA ---
-  # Esto genera el XML que separa fondo y frente, igual que Proton Mail.
-  adaptive_icon_background: "#FFFFFF"  # Fondo Blanco Puro
-  adaptive_icon_foreground: "assets/images/icon_foreground.png" # El logo con fondo transparente
+  # 👇 ESTAS LÍNEAS TIENEN QUE ESTAR ACTIVAS (SIN #) 👇
+  notification_icon: "ic_stat_oksigenia"
+  image_path_android: "assets/images/logo_white.png"

@@ -61,7 +61,7 @@ class _AboutScreenState extends State<AboutScreen> {
       appBar: AppBar(
         title: Text(l10n.aboutTitle),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        // Sin color fijo, se adapta al tema
         elevation: 0,
       ),
       body: ListView(
@@ -69,8 +69,13 @@ class _AboutScreenState extends State<AboutScreen> {
         children: [
           // LOGO Y VERSIÓN
           const SizedBox(height: 20),
-          const Center(
-            child: Icon(Icons.monitor_heart, size: 80, color: Color(0xFFB71C1C)),
+          Center(
+            // 🔄 CAMBIO AQUÍ: Usamos tu logo real en lugar del icono del sistema
+            child: Image.asset(
+              'assets/images/logo.png',
+              width: 150, // Antes 120, ahora 150 para que se vea más grande
+              height: 150,
+            ),
           ),
           const SizedBox(height: 10),
           const Center(
@@ -90,7 +95,7 @@ class _AboutScreenState extends State<AboutScreen> {
           // LISTA DE OPCIONES
           const Divider(),
           
-          // 1. AVISO LEGAL (Usa el texto que ya tienes en l10n)
+          // 1. AVISO LEGAL
           ListTile(
             leading: const Icon(Icons.gavel),
             title: Text(l10n.aboutDisclaimer),
@@ -98,11 +103,11 @@ class _AboutScreenState extends State<AboutScreen> {
             onTap: () => _showLegalDialog(
               context, 
               l10n.aboutDisclaimer, 
-              l10n.disclaimerText // Reutilizamos el texto largo del disclaimer
+              l10n.disclaimerText 
             ),
           ),
           
-          // 2. PRIVACIDAD (Usa el texto que ya tienes en l10n)
+          // 2. PRIVACIDAD
           ListTile(
             leading: const Icon(Icons.privacy_tip),
             title: Text(l10n.aboutPrivacy),
@@ -110,13 +115,13 @@ class _AboutScreenState extends State<AboutScreen> {
             onTap: () => _showLegalDialog(
               context, 
               l10n.aboutPrivacy, 
-              l10n.privacyPolicyContent // Reutilizamos el texto largo de privacidad
+              l10n.privacyPolicyContent 
             ),
           ),
 
           const Divider(),
 
-          // 3. LICENCIAS OPEN SOURCE (Nativo de Flutter)
+          // 3. LICENCIAS OPEN SOURCE
           ListTile(
             leading: const Icon(Icons.receipt_long),
             title: Text(l10n.aboutLicenses),
@@ -125,11 +130,16 @@ class _AboutScreenState extends State<AboutScreen> {
               context: context,
               applicationName: "Oksigenia SOS",
               applicationVersion: _version,
-              applicationIcon: const Icon(Icons.monitor_heart, color: Colors.red),
+              // 🔄 CAMBIO AQUÍ TAMBIÉN: Logo real en la pantalla de licencias
+              applicationIcon: Image.asset(
+                'assets/images/logo.png', 
+                width: 48, 
+                height: 48
+              ),
             ),
           ),
 
-          // 4. CÓDIGO FUENTE (GitHub)
+          // 4. CÓDIGO FUENTE
           ListTile(
             leading: const Icon(Icons.code),
             title: Text(l10n.aboutSourceCode),
