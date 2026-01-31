@@ -29,6 +29,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+        // CORRECCIÓN: Sintaxis Kotlin requiere 'is' y el signo '='
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -83,4 +85,9 @@ android {
 
 flutter {
     source = "../.."
+}
+
+// CORRECCIÓN: Bloque de dependencias necesario para el desugaring en Kotlin DSL
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

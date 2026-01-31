@@ -65,14 +65,14 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
     return justDigits.length >= 6;
   }
 
-  // 💡 NUEVO: Diálogo de ayuda para permisos restringidos (Android 13+)
+  // 💡 Diálogo de ayuda para permisos restringidos (Android 13+)
   void _showPermissionGuide(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(l10n.dialogPermissionTitle), // "Cómo activar..."
+        title: Text(l10n.dialogPermissionTitle), 
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,12 +89,12 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.dialogClose ?? "Cerrar"), // Usamos dialogClose genérico si existe, o hardcode fallback
+            child: Text(l10n.dialogClose ?? "Cerrar"), 
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-              openAppSettings(); // Ahora sí vamos a ajustes
+              openAppSettings(); 
             },
             child: Text(l10n.btnGoToSettings),
           ),
@@ -155,7 +155,7 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
 
     String phone = _phoneController.text.trim();
 
-    // 2. Chequeo de Validación (Usando la traducción nueva)
+    // 2. Chequeo de Validación
     if (!_isValidPhoneNumber(phone)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -236,7 +236,6 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                     ]),
                     const SizedBox(height: 10),
                     ElevatedButton.icon(
-                      // 👇 AQUÍ SE ACTIVA EL TUTORIAL
                       onPressed: () => _showPermissionGuide(context),
                       icon: const Icon(Icons.settings_applications),
                       label: Text(l10n.permSmsButton),
@@ -262,6 +261,8 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                       prefixIcon: const Icon(Icons.phone),
                     ),
                     keyboardType: TextInputType.phone,
+                    // 🔥 MEJORA UX: Botón "Intro" del teclado añade el contacto
+                    textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _addContact(),
                   ),
                 ),
@@ -351,7 +352,7 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
               ),
             ),
             
-            // 👇 BLOQUE RECUPERADO
+            // 👇 TRACKING DESACTIVADO PARA v3.9.2
             /*
             const Divider(height: 40),
 
@@ -377,7 +378,6 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
               ),
             ),
             */
-            // 👆 FIN BLOQUE RECUPERADO
             
             const SizedBox(height: 50),
           ],

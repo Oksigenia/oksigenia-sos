@@ -101,5 +101,16 @@
     "dialogPermissionStep2": "2. En la nueva pantalla, toca los 3 puntos (⠇) arriba a la derecha.",
     "dialogPermissionStep3": "3. Selecciona 'Permitir ajustes restringidos' (si aparece).",
     "dialogPermissionStep4": "4. Vuelve a esta app.",
-    "btnGoToSettings": "IR A AJUSTES"
+    "btnGoToSettings": "IR A AJUSTES",
+    "timerLabel": "Temporizador",
+    "timerSeconds": "segundos",
+    "permDialogTitle": "Revisión de Permisos",
+    "permGoSettings": "IR A AJUSTES",
+    "permSmsOk": "Permiso SMS activo.",
+    "permSmsMissing": "Necesitamos acceso a SMS para enviar las alertas de emergencia a tus contactos.",
+    "permSensorsOk": "Sensores activos.",
+    "permSensorsMissing": "Necesitamos acceso a Sensores y Actividad Física para detectar si te caes o dejas de moverte.",
+    "permNotifOk": "Notificaciones activas.",
+    "permNotifMissing": "Necesitamos permiso de Notificaciones para mantener el sistema activo en segundo plano.",
+    "permOverlayMissing": "Necesario para mostrar la alarma sobre otras apps (Telegram, WhatsApp)."
 }

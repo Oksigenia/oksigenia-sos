@@ -1,4 +1,4 @@
-# Oksigenia SOS 🏔️ v3.9.1
+# Oksigenia SOS 🏔️ v3.9.2
 
 **Outdoor Emergency Assistant | FOSS | Privacy-First**
 
@@ -24,7 +24,7 @@
 
 ---
 
-## 📸 Interface / Interfaz (v3.9.1)
+## 📸 Interface / Interfaz (v3.9.x)
 
 | Dashboard | Impact Alert | Settings | Menu |
 |:---:|:---:|:---:|:---:|
@@ -36,15 +36,16 @@
 
 ---
 
-## 🚀 Evolution v3.9.x (The Face-Lift)
+## 🚀 Evolution v3.9.x (Ironclad Sentinel)
 
 | Feature | English | Español |
 |:---|:---|:---|
-| 🚨 **Circular UX** | **New Countdown UI**. (v3.9.1) Replaced the static counter with a dynamic red circular indicator to reduce user anxiety during false alarms. Shows clearly if the trigger was an **Impact** or **Inactivity**. | **Nueva UI Circular**. (v3.9.1) Reemplazo del contador estático por un indicador circular rojo dinámico para reducir la ansiedad en falsas alarmas. Indica claramente si fue **Impacto** o **Inactividad**. |
-| 🛡️ **Stability Core** | **Rock-Solid Reliability**. (v3.9.1) Fixed rotation issues (locked to Portrait), enhanced background service persistence, and solved GPS initialization bugs. | **Estabilidad Total**. (v3.9.1) Corrección de rotación (fijado en Vertical), mejora en la persistencia del servicio en segundo plano y solución de bugs de GPS. |
-| 🪫 **Dying Gasp** | **Last Breath Alert**. If battery drops below 5% while monitoring is active, an automatic SOS with location is sent before the phone dies. | **El Último Suspiro**. Si la batería baja del 5% con el monitor activo, envía un SOS automático con ubicación antes de apagarse. |
-| 📉 **Smart Motion** | **High-Sensitivity Algorithm**. Physics engine distinguishes between active movement (stairs, jogging) and actual stillness, reducing false alarms. | **Algoritmo de Alta Sensibilidad**. Motor físico que distingue entre movimiento activo (escaleras, trote) e inmovilidad real, reduciendo falsas alarmas. |
-| 📡 **Rich Telemetry** | **Enhanced SOS**. Messages now include Altitude, Battery %, and Accuracy to help rescuers gauge the context. | **Telemetría Avanzada**. Los mensajes incluyen Altitud, Batería % y Precisión para dar contexto al rescate. |
+| 🛡️ **Ironclad Core** | **v3.9.2 Update**. The app now survives background kills ("Sticky Service") and auto-restarts after phone reboot. Includes a "Safety Brake" that minimizes the app instead of closing it on back press. | **Actualización v3.9.2**. La app sobrevive al cierre en segundo plano ("Sticky Service") y se auto-inicia al reiniciar el móvil. Incluye "Freno de Seguridad" que minimiza la app en lugar de cerrarla al pulsar atrás. |
+| 🚦 **Live Dashboard** | **v3.9.2 Update**. New top-row icons indicate real-time permission status (SMS, Sensors). G-Force indicator changes color (Green/Orange/Red) based on movement intensity. | **Actualización v3.9.2**. Nuevos iconos superiores indican estado de permisos en tiempo real. El indicador de Fuerza G cambia de color (Verde/Naranja/Rojo) según la intensidad del movimiento. |
+| 🚨 **Priority Alert** | **Full Screen Intent**. Upon accident detection, the app wakes up the screen and overlays the alarm above the PIN lock (requires permissions on Xiaomi/Samsung). | **Alarma Prioritaria**. Al detectar accidente, la app enciende la pantalla y superpone la alarma sobre el bloqueo PIN (requiere permisos en Xiaomi/Samsung). |
+| 👻 **Discrete Sylvia** | **Smart Notification**. The persistent notification is now silent and uses clear Status Shields (Green=Protected, Red=Paused) to avoid visual noise. | **Notificación Inteligente**. La notificación persistente es ahora silenciosa y usa Escudos de Estado (Verde=Protegido, Rojo=Pausa) para evitar ruido visual. |
+| ⭕ **Circular UX** | **Dynamic Countdown**. (v3.9.1) Replaced the static counter with a dynamic red circular indicator to reduce user anxiety during false alarms. | **Cuenta Atrás Dinámica**. (v3.9.1) Indicador circular rojo que reduce la ansiedad del usuario durante falsas alarmas. |
+| 🪫 **Dying Gasp** | **Last Breath Alert**. If battery drops below 5%, an automatic SOS is sent. **v3.9.2:** Now includes battery level fallback if GPS fails. | **El Último Suspiro**. Si la batería baja del 5%, envía un SOS. **v3.9.2:** Ahora incluye el nivel de batería si el GPS falla. |
 
 ---
 
@@ -63,10 +64,12 @@
 [ES] Si ves un aviso de "Ajustes Restringidos" al activar los SMS:
 1. Ve a **Ajustes > Apps > Oksigenia SOS**.
 2. Pulsa los **tres puntos (⋮)** (arriba derecha) -> **"Permitir ajustes restringidos"**.
+*Nota: La versión v3.9.2 incluye una guía interactiva dentro de la app para ayudarte.*
 
 [EN] If you see a "Restricted Setting" warning when enabling SMS:
 1. Go to **Settings > Apps > Oksigenia SOS**.
 2. Tap **three dots (⋮)** (top right) -> **"Allow restricted settings"**.
+*Note: Version v3.9.2 includes an in-app interactive guide to help you.*
 
 <br clear="right"/>
 
@@ -79,7 +82,7 @@ Check the **[Releases Section](https://github.com/OksigeniaSL/oksigenia-sos/rele
 
 ### 💻 Build from source
 ```bash
-git clone [https://github.com/OksigeniaSL/oksigenia-sos.git](https://github.com/OksigeniaSL/oksigenia-sos.git)
+git clone https://github.com/OksigeniaSL/oksigenia-sos.git
 cd oksigenia-sos
 flutter pub get
 # Create your key.properties first!

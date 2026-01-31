@@ -101,5 +101,16 @@
     "dialogPermissionStep2": "2. Tippen Sie im neuen Bildschirm oben rechts auf die 3 Punkte (⠇).",
     "dialogPermissionStep3": "3. Wählen Sie 'Eingeschränkte Einstellungen zulassen' (falls sichtbar).",
     "dialogPermissionStep4": "4. Kehren Sie zu dieser App zurück.",
-    "btnGoToSettings": "ZU DEN EINSTELLUNGEN"
+    "btnGoToSettings": "ZU DEN EINSTELLUNGEN",
+    "timerLabel": "Timer",
+    "timerSeconds": "Sekunden",
+    "permDialogTitle": "Berechtigungen",
+    "permGoSettings": "EINSTELLUNGEN",
+    "permSmsOk": "SMS-Berechtigung aktiv.",
+    "permSmsMissing": "Wir benötigen SMS-Zugriff, um Notfallwarnungen an Ihre Kontakte zu senden.",
+    "permSensorsOk": "Sensoren aktiv.",
+    "permSensorsMissing": "Wir benötigen Zugriff auf Sensoren und körperliche Aktivität, um Stürze zu erkennen.",
+    "permNotifOk": "Benachrichtigungen aktiv.",
+    "permNotifMissing": "Wir benötigen Benachrichtigungen, um das System im Hintergrund aktiv zu halten.",
+    "permOverlayMissing": "Erforderlich, um den Alarm über anderen Apps anzuzeigen (Telegram, WhatsApp)."
 }

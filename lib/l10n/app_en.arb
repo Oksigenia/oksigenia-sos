@@ -101,5 +101,16 @@
     "dialogPermissionStep2": "2. On the new screen, tap the 3 dots (⠇) top right.",
     "dialogPermissionStep3": "3. Select 'Allow restricted settings' (if visible).",
     "dialogPermissionStep4": "4. Return to this app.",
-    "btnGoToSettings": "GO TO SETTINGS"
+    "btnGoToSettings": "GO TO SETTINGS",
+    "timerLabel": "Timer",
+    "timerSeconds": "seconds",
+    "permDialogTitle": "Permission Check",
+    "permGoSettings": "GO TO SETTINGS",
+    "permSmsOk": "SMS permission is active.",
+    "permSmsMissing": "We need SMS permission to send emergency alerts to your contacts.",
+    "permSensorsOk": "Sensors are active.",
+    "permSensorsMissing": "We need access to Sensors and Activity Recognition to detect falls and inactivity.",
+    "permNotifOk": "Notifications are active.",
+    "permNotifMissing": "We need Notification permission to keep the system running in the background.",
+    "permOverlayMissing": "Required to show the alarm over other apps (Telegram, WhatsApp)."
 }

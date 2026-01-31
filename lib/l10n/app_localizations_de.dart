@@ -322,4 +322,41 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dialogPermissionStep4 => '4. Kehren Sie zu dieser App zurück.';
+
+  @override
+  String get timerLabel => 'Timer';
+
+  @override
+  String get timerSeconds => 'Sekunden';
+
+  @override
+  String get permDialogTitle => 'Berechtigungen';
+
+  @override
+  String get permGoSettings => 'EINSTELLUNGEN';
+
+  @override
+  String get permSmsOk => 'SMS-Berechtigung aktiv.';
+
+  @override
+  String get permSmsMissing =>
+      'Wir benötigen SMS-Zugriff, um Notfallwarnungen an Ihre Kontakte zu senden.';
+
+  @override
+  String get permSensorsOk => 'Sensoren aktiv.';
+
+  @override
+  String get permSensorsMissing =>
+      'Wir benötigen Zugriff auf Sensoren und körperliche Aktivität, um Stürze zu erkennen.';
+
+  @override
+  String get permNotifOk => 'Benachrichtigungen aktiv.';
+
+  @override
+  String get permNotifMissing =>
+      'Wir benötigen Benachrichtigungen, um das System im Hintergrund aktiv zu halten.';
+
+  @override
+  String get permOverlayMissing =>
+      'Erforderlich, um den Alarm über anderen Apps anzuzeigen (Telegram, WhatsApp).';
 }

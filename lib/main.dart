@@ -23,22 +23,15 @@ void main() async {
   await PreferencesService().init(); 
   final prefs = await SharedPreferences.getInstance();
 
-  // 2. DESPERTAR A SYLVIA
+  // 2. DESPERTAR A SYLVIA (Servicio)
   await initializeService(); 
   
   final bool accepted = prefs.getBool('disclaimer_accepted') ?? false;
   final String? savedLang = prefs.getString('language_code');
 
-  // 3. INICIALIZAR EL CEREBRO (Lógica SOS)
+  // 3. INSTANCIAR EL CEREBRO (Pero no iniciarlo aún)
   final sosLogic = SOSLogic();
   
-  // 🛑 CORRECCIÓN: Solo arrancamos la lógica (y pedimos permisos)
-  // si el usuario YA ha aceptado el disclaimer anteriormente.
-  // Si es nuevo, la lógica se iniciará cuando entre al HomeScreen.
-  if (accepted) {
-    await sosLogic.init();
-  }
-
   runApp(
     MultiProvider(
       providers: [
@@ -47,6 +40,7 @@ void main() async {
       child: OksigeniaApp(
         initialAccepted: accepted,
         savedLanguage: savedLang,
+        sosLogic: sosLogic, // 🔥 Pasamos la lógica para iniciarla en el momento seguro
       ),
     ),
   );
@@ -55,11 +49,13 @@ void main() async {
 class OksigeniaApp extends StatefulWidget {
   final bool initialAccepted;
   final String? savedLanguage;
+  final SOSLogic sosLogic; // Referencia para iniciar
 
   const OksigeniaApp({
     super.key, 
     required this.initialAccepted,
-    this.savedLanguage
+    this.savedLanguage,
+    required this.sosLogic,
   });
 
   @override
@@ -80,6 +76,15 @@ class _OksigeniaAppState extends State<OksigeniaApp> {
     if (widget.savedLanguage != null) {
       _locale = Locale(widget.savedLanguage!);
     }
+
+    // 🔥 CORRECCIÓN CRÍTICA:
+    // Iniciamos la lógica DESPUÉS de que el Widget se haya montado.
+    // Esto asegura que 'oksigeniaNavigatorKey' ya esté vinculado a MaterialApp.
+    if (widget.initialAccepted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.sosLogic.init();
+      });
+    }
   }
 
   void setLocale(Locale locale) {
@@ -98,6 +103,7 @@ class _OksigeniaAppState extends State<OksigeniaApp> {
     ));
 
     return MaterialApp(
+      // 🔑 ESTA ES LA LLAVE QUE PERMITE A LA LÓGICA ABRIR PANTALLAS
       navigatorKey: oksigeniaNavigatorKey,
 
       debugShowCheckedModeBanner: false,

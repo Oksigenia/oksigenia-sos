@@ -101,5 +101,16 @@
     "dialogPermissionStep2": "2. Sur le nouvel écran, touchez les 3 points (⠇) en haut à droite.",
     "dialogPermissionStep3": "3. Sélectionnez 'Autoriser les paramètres restreints' (si visible).",
     "dialogPermissionStep4": "4. Revenez à cette application.",
-    "btnGoToSettings": "ALLER AUX PARAMÈTRES"
+    "btnGoToSettings": "ALLER AUX PARAMÈTRES",
+    "timerLabel": "Minuterie",
+    "timerSeconds": "secondes",
+    "permDialogTitle": "Vérification",
+    "permGoSettings": "PARAMÈTRES",
+    "permSmsOk": "Permission SMS active.",
+    "permSmsMissing": "Nous avons besoin des SMS pour envoyer les alertes d'urgence à vos contacts.",
+    "permSensorsOk": "Capteurs actifs.",
+    "permSensorsMissing": "Nous avons besoin d'accès aux Capteurs et à l'Activité Physique pour détecter les chutes.",
+    "permNotifOk": "Notifications actives.",
+    "permNotifMissing": "Nous avons besoin des Notifications pour maintenir le système actif en arrière-plan.",
+    "permOverlayMissing": "Requis pour afficher l'alarme sur d'autres applis (Telegram, WhatsApp)."
 }

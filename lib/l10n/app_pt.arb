@@ -101,5 +101,16 @@
     "dialogPermissionStep2": "2. No novo ecrã, toque nos 3 pontos (⠇) no canto superior direito.",
     "dialogPermissionStep3": "3. Selecione 'Permitir definições restritas' (se visível).",
     "dialogPermissionStep4": "4. Volte a esta aplicação.",
-    "btnGoToSettings": "IR PARA DEFINIÇÕES"
+    "btnGoToSettings": "IR PARA DEFINIÇÕES",
+    "timerLabel": "Temporizador",
+    "timerSeconds": "segundos",
+    "permDialogTitle": "Verificação",
+    "permGoSettings": "CONFIGURAÇÕES",
+    "permSmsOk": "Permissão SMS ativa.",
+    "permSmsMissing": "Precisamos de acesso a SMS para enviar alertas de emergência aos seus contatos.",
+    "permSensorsOk": "Sensores ativos.",
+    "permSensorsMissing": "Precisamos de acesso a Sensores e Atividade Física para detectar quedas e inatividade.",
+    "permNotifOk": "Notificações ativas.",
+    "permNotifMissing": "Precisamos de permissão de Notificações para manter o sistema ativo em segundo plano.",
+    "permOverlayMissing": "Necessário para mostrar o alarme sobre outros apps (Telegram, WhatsApp)."
 }

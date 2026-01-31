@@ -709,6 +709,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'4. Return to this app.'**
   String get dialogPermissionStep4;
+
+  /// No description provided for @timerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Timer'**
+  String get timerLabel;
+
+  /// No description provided for @timerSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'seconds'**
+  String get timerSeconds;
+
+  /// No description provided for @permDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission Check'**
+  String get permDialogTitle;
+
+  /// No description provided for @permGoSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'GO TO SETTINGS'**
+  String get permGoSettings;
+
+  /// No description provided for @permSmsOk.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS permission is active.'**
+  String get permSmsOk;
+
+  /// No description provided for @permSmsMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'We need SMS permission to send emergency alerts to your contacts.'**
+  String get permSmsMissing;
+
+  /// No description provided for @permSensorsOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensors are active.'**
+  String get permSensorsOk;
+
+  /// No description provided for @permSensorsMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'We need access to Sensors and Activity Recognition to detect falls and inactivity.'**
+  String get permSensorsMissing;
+
+  /// No description provided for @permNotifOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are active.'**
+  String get permNotifOk;
+
+  /// No description provided for @permNotifMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'We need Notification permission to keep the system running in the background.'**
+  String get permNotifMissing;
+
+  /// No description provided for @permOverlayMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Required to show the alarm over other apps (Telegram, WhatsApp).'**
+  String get permOverlayMissing;
 }
 
 class _AppLocalizationsDelegate

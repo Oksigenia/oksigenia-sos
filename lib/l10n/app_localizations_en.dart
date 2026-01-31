@@ -326,4 +326,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dialogPermissionStep4 => '4. Return to this app.';
+
+  @override
+  String get timerLabel => 'Timer';
+
+  @override
+  String get timerSeconds => 'seconds';
+
+  @override
+  String get permDialogTitle => 'Permission Check';
+
+  @override
+  String get permGoSettings => 'GO TO SETTINGS';
+
+  @override
+  String get permSmsOk => 'SMS permission is active.';
+
+  @override
+  String get permSmsMissing =>
+      'We need SMS permission to send emergency alerts to your contacts.';
+
+  @override
+  String get permSensorsOk => 'Sensors are active.';
+
+  @override
+  String get permSensorsMissing =>
+      'We need access to Sensors and Activity Recognition to detect falls and inactivity.';
+
+  @override
+  String get permNotifOk => 'Notifications are active.';
+
+  @override
+  String get permNotifMissing =>
+      'We need Notification permission to keep the system running in the background.';
+
+  @override
+  String get permOverlayMissing =>
+      'Required to show the alarm over other apps (Telegram, WhatsApp).';
 }

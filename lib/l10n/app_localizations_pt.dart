@@ -322,4 +322,41 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get dialogPermissionStep4 => '4. Volte a esta aplicação.';
+
+  @override
+  String get timerLabel => 'Temporizador';
+
+  @override
+  String get timerSeconds => 'segundos';
+
+  @override
+  String get permDialogTitle => 'Verificação';
+
+  @override
+  String get permGoSettings => 'CONFIGURAÇÕES';
+
+  @override
+  String get permSmsOk => 'Permissão SMS ativa.';
+
+  @override
+  String get permSmsMissing =>
+      'Precisamos de acesso a SMS para enviar alertas de emergência aos seus contatos.';
+
+  @override
+  String get permSensorsOk => 'Sensores ativos.';
+
+  @override
+  String get permSensorsMissing =>
+      'Precisamos de acesso a Sensores e Atividade Física para detectar quedas e inatividade.';
+
+  @override
+  String get permNotifOk => 'Notificações ativas.';
+
+  @override
+  String get permNotifMissing =>
+      'Precisamos de permissão de Notificações para manter o sistema ativo em segundo plano.';
+
+  @override
+  String get permOverlayMissing =>
+      'Necessário para mostrar o alarme sobre outros apps (Telegram, WhatsApp).';
 }
