@@ -18,15 +18,6 @@
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-    <!-- Alarmas exactas para el watchdog anti-Doze (AndroidScheduleMode.alarmClock del
-         monitor de inactividad y del live-tracking). SIN esto, el plugin llama a
-         canScheduleExactAlarms() y lanza en Android 12+ (permiso ausente = false),
-         y el catch sólo lo logueaba: la capa anti-Doze no se programaba jamás.
-         31–32: SCHEDULE_EXACT_ALARM (concedido en la instalación).
-         33+:  USE_EXACT_ALARM (auto-concedido, apropiado para app de seguridad tipo
-               alarma; sin fricción en F-Droid/IzzyOnDroid). -->
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <queries>
         <intent>

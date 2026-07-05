@@ -373,17 +373,20 @@ void onStart(ServiceInstance service) async {
             category: AndroidNotificationCategory.alarm,
           ),
         ),
-        androidScheduleMode: AndroidScheduleMode.alarmClock,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       );
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('inactivity_alarm_scheduled_for', scheduledDate.millisecondsSinceEpoch);
       _lastAlarmReschedule = DateTime.now();
       print("SYLVIA: ⏰ AlarmClock programado en ${_inactivityLimitSeconds}s");
     } catch (e) {
-      // _logSentinel (no print): si vuelve a fallar la programación exacta
-      // (permiso revocado, OEM raro), tiene que quedar en el log de campo —
-      // este catch mudo fue lo que ocultó C1 durante meses.
-      _logSentinel("SYLVIA: ❌ Error al programar AlarmClock de inactividad: $e");
+      // C1: se usa inexactAllowWhileIdle (no alarmClock) — así el plugin NO llama
+      // a canScheduleExactAlarms() y no lanza sin permiso de alarma exacta, que
+      // era lo que dejaba la capa anti-Doze sin programar en Android 12+. El
+      // sistema puede retrasar la alarma unos minutos en Doze; irrelevante para
+      // un umbral de inactividad de 1h. _logSentinel (no print) para que
+      // cualquier fallo futuro quede en el log — este catch mudo ocultó C1.
+      _logSentinel("SYLVIA: ❌ Error al programar alarma de inactividad: $e");
     }
   }
 
@@ -415,7 +418,7 @@ void onStart(ServiceInstance service) async {
             enableVibration: false,
           ),
         ),
-        androidScheduleMode: AndroidScheduleMode.alarmClock,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       );
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('live_tracking_next_send', scheduledDate.millisecondsSinceEpoch);
@@ -453,7 +456,7 @@ void onStart(ServiceInstance service) async {
             enableVibration: false,
           ),
         ),
-        androidScheduleMode: AndroidScheduleMode.alarmClock,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       );
       print("SYLVIA: ⏰ Shutdown reminder scheduled in ${afterSeconds}s");
     } catch (e) {
