@@ -201,6 +201,10 @@ void onStart(ServiceInstance service) async {
   // impact and an alarm, Android killed and respawned the service mid-yellow.
   _logSentinel("SYLVIA SERVICE: 🚀 onStart entered (isolate spawn)");
 
+  // B5: cargar la BD de zonas horarias una sola vez por spawn del isolate, no en
+  // cada programación de AlarmClock (hasta 1/min en movimiento).
+  tz.initializeTimeZones();
+
   const MethodChannel platform = MethodChannel('com.oksigenia.sos/sms');
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -248,6 +252,19 @@ void onStart(ServiceInstance service) async {
   int _yellowCountdown = 60;
   Timer? _yellowTimer;
   Timer? _shieldTimer;
+
+  // A1: liveness de los dos streams de acelerómetro. El watchdog de 5s los
+  // resuscribe si dejan de emitir — si un stream muere en silencio, la
+  // detección desaparece mientras la notificación sigue diciendo "protegido".
+  DateTime _lastRawSample = DateTime.fromMillisecondsSinceEpoch(0);
+  DateTime _lastUserSample = DateTime.fromMillisecondsSinceEpoch(0);
+  // A2: GPS calentado durante la cuenta atrás de la alarma (30s de warmup) para
+  // no pedir un fix en frío con 5s de margen justo cuando sale el SOS.
+  StreamSubscription<Position>? _warmGpsSub;
+  Position? _warmPos;
+  // A3: throttle del sondeo GPS del beacon + guard de tick concurrente.
+  DateTime _beaconLastProbe = DateTime.fromMillisecondsSinceEpoch(0);
+  bool _beaconTickBusy = false;
 
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('ic_stat_oksigenia');
@@ -336,7 +353,6 @@ void onStart(ServiceInstance service) async {
   Future<void> _scheduleInactivityAlarmClock() async {
     if (!_isMonitoringInactivity) return;
     try {
-      tz.initializeTimeZones();
       final scheduledDate = tz.TZDateTime.now(tz.UTC).add(Duration(seconds: _inactivityLimitSeconds));
       await flutterLocalNotificationsPlugin.cancel(id: _inactivityAlarmNotifId);
       await flutterLocalNotificationsPlugin.zonedSchedule(
@@ -364,7 +380,10 @@ void onStart(ServiceInstance service) async {
       _lastAlarmReschedule = DateTime.now();
       print("SYLVIA: ⏰ AlarmClock programado en ${_inactivityLimitSeconds}s");
     } catch (e) {
-      print("SYLVIA: Error al programar AlarmClock: $e");
+      // _logSentinel (no print): si vuelve a fallar la programación exacta
+      // (permiso revocado, OEM raro), tiene que quedar en el log de campo —
+      // este catch mudo fue lo que ocultó C1 durante meses.
+      _logSentinel("SYLVIA: ❌ Error al programar AlarmClock de inactividad: $e");
     }
   }
 
@@ -378,7 +397,6 @@ void onStart(ServiceInstance service) async {
 
   Future<void> _scheduleLiveTrackingAlarm() async {
     try {
-      tz.initializeTimeZones();
       final scheduledDate = tz.TZDateTime.now(tz.UTC).add(Duration(seconds: _liveTrackingIntervalSeconds));
       _liveTrackingNextSend = scheduledDate;
       await flutterLocalNotificationsPlugin.cancel(id: _liveTrackingAlarmId);
@@ -403,7 +421,7 @@ void onStart(ServiceInstance service) async {
       await prefs.setInt('live_tracking_next_send', scheduledDate.millisecondsSinceEpoch);
       print("SYLVIA: 📍 Live Tracking alarm scheduled in ${_liveTrackingIntervalSeconds}s");
     } catch (e) {
-      print("SYLVIA: Live Tracking alarm error: $e");
+      _logSentinel("SYLVIA: ❌ Live Tracking alarm error: $e");
     }
   }
 
@@ -418,7 +436,6 @@ void onStart(ServiceInstance service) async {
 
   Future<void> _scheduleShutdownReminder(int afterSeconds) async {
     try {
-      tz.initializeTimeZones();
       final scheduledDate = tz.TZDateTime.now(tz.UTC).add(Duration(seconds: afterSeconds));
       await flutterLocalNotificationsPlugin.cancel(id: _liveTrackingShutdownAlarmId);
       await flutterLocalNotificationsPlugin.zonedSchedule(
@@ -440,7 +457,36 @@ void onStart(ServiceInstance service) async {
       );
       print("SYLVIA: ⏰ Shutdown reminder scheduled in ${afterSeconds}s");
     } catch (e) {
-      print("SYLVIA: Shutdown reminder error: $e");
+      _logSentinel("SYLVIA: ❌ Shutdown reminder error: $e");
+    }
+  }
+
+  // Envía un SMS y ADEMÁS registra en el log si el radio llega a confirmarlo.
+  // Devuelve true si se entregó a SmsManager sin excepción (misma semántica que
+  // antes: "encolado"). OJO — techo conocido del plugin: su BroadcastReceiver
+  // reenvía SMS_SENT sin mirar el resultCode, así que la confirmación significa
+  // "el radio lo procesó" (éxito O error), no "entregado". No bloquea el envío:
+  // el statusListener escribe en el log de forma asíncrona cuando llega la
+  // confirmación. El listener del plugin es un campo compartido, por eso los
+  // envíos SIEMPRE deben ser secuenciales (nunca en paralelo).
+  Future<bool> _sendSmsTracked(String to, String message) async {
+    bool confirmed = false;
+    try {
+      await _telephony.sendSms(
+        to: to,
+        message: message,
+        isMultipart: true,
+        statusListener: (status) {
+          if (!confirmed) {
+            confirmed = true;
+            _logSentinel("SYLVIA SMS: 📶 radio procesó envío a $to (status=$status)");
+          }
+        },
+      );
+      return true;
+    } catch (e) {
+      _logSentinel("SYLVIA SMS: ❌ excepción al entregar a SmsManager para $to: $e");
+      return false;
     }
   }
 
@@ -491,12 +537,7 @@ void onStart(ServiceInstance service) async {
       msgBody += "\n(GPS Error)\n\n🔋Bat: $batteryLevel%";
     }
 
-    try {
-      await _telephony.sendSms(to: target, message: msgBody, isMultipart: true);
-      print("SYLVIA: 📍 Live Tracking SMS enviado a $target");
-    } catch (e) {
-      print("SYLVIA: ❌ Live Tracking SMS error: $e");
-    }
+    await _sendSmsTracked(target, msgBody);
 
     service.invoke("onLiveTrackingSent");
 
@@ -540,6 +581,55 @@ void onStart(ServiceInstance service) async {
     );
   }
 
+  // ÚNICA fuente de verdad de si Sylvia tiene algún motivo para seguir viva.
+  // El foreground service mantiene un wakelock permanente del plugin mientras
+  // exista; si no hay nada activo, ese wakelock drena la batería sin dar
+  // protección a cambio. En montaña (sin WiFi → módem activo; con movimiento →
+  // sin Doze profundo que enmascare el wakelock) eso son horas de batería
+  // perdidas, y sin batería no hay SOS. Conservador a propósito: ante la duda,
+  // seguir viva (un falso "parar" tiraría la protección a mitad de rescate).
+  Future<bool> _shouldStayAlive() async {
+    if (_isMonitoringImpact || _isMonitoringInactivity ||
+        _isLiveTrackingActive || _isAlarmActive) {
+      return true;
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.reload();
+      if (prefs.getBool('beacon_active') ?? false) return true;
+    } catch (_) {
+      return true; // si no se pueden leer prefs, pecar de seguir viva
+    }
+    return false;
+  }
+
+  // Detiene el foreground service (liberando el wakelock permanente del plugin)
+  // si no queda ningún motivo para seguir vivo. Devuelve true si detuvo.
+  Future<bool> _stopIfIdle(String reason) async {
+    if (await _shouldStayAlive()) return false;
+    _logSentinel("SYLVIA SERVICE: 🌙 Nada activo ($reason) → deteniendo servicio y liberando wakelock");
+    _accSub?.cancel(); _accSub = null;
+    _rawAccSub?.cancel(); _rawAccSub = null;
+    _inactivityCheckTimer?.cancel();
+    _zombieTimer?.cancel();
+    _yellowTimer?.cancel();
+    _shieldTimer?.cancel();
+    await _cancelInactivityAlarmClock();
+    await _cancelLiveTrackingAlarm();
+    try { await flutterLocalNotificationsPlugin.cancelAll(); } catch (_) {}
+    // El wakelock del plugin (estático, PARTIAL_WAKE_LOCK) solo se libera cuando
+    // el PROCESO muere: el plugin hace acquire() pero nunca release(). Por eso
+    // hay que detener el servicio de verdad (stopSelf → isManuallyStopped, sin
+    // watchdog que lo reviva), igual que el handler de "cerrar". Con la UI en
+    // primer plano el proceso no muere aún (la UI lo sostiene); el wakelock se
+    // suelta en cuanto la app pasa a segundo plano / se cierra. NO usar
+    // setAsBackgroundService: dejaba config.isForeground=false persistido y al
+    // rearrancar tras boot el servicio no llamaba startForeground → crash; y la
+    // re-promoción que lo arreglaba reemitía la notif del plugin (hojita + sonido).
+    service.stopSelf();
+    return true;
+  }
+
   Future<void> _activateBeacon(Position originPos) async {
     try {
       final p = await SharedPreferences.getInstance();
@@ -552,10 +642,50 @@ void onStart(ServiceInstance service) async {
       await p.setDouble('beacon_last_lon', originPos.longitude);
       await p.setInt('beacon_last_ts', now);
       await p.setInt('beacon_count', 0);
+      await p.setBool('beacon_origin_pending', false);
       _logSentinel("SYLVIA SERVICE: 📍 Beacon activated at ${originPos.latitude.toStringAsFixed(5)},${originPos.longitude.toStringAsFixed(5)}");
     } catch (e) {
       print("SYLVIA: Beacon activate error: $e");
     }
+  }
+
+  // M5: beacon armado sin fix de origen. Usa la hora de activación como origin_ts
+  // (para que la ventana de 4h cuente desde el SOS) pero sin coordenadas: el
+  // primer fix que consiga _beaconTick será el origen y se enviará de inmediato.
+  Future<void> _activateBeaconPendingOrigin() async {
+    try {
+      final p = await SharedPreferences.getInstance();
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await p.setBool('beacon_active', true);
+      await p.setBool('beacon_origin_pending', true);
+      await p.setInt('beacon_origin_ts', now);
+      await p.setInt('beacon_last_ts', now);
+      await p.setInt('beacon_count', 0);
+      _beaconLastProbe = DateTime.fromMillisecondsSinceEpoch(0);
+      _logSentinel("SYLVIA SERVICE: 📍 Beacon armed (origin pending — SOS sent without GPS)");
+    } catch (e) {
+      print("SYLVIA: Beacon pending-origin activate error: $e");
+    }
+  }
+
+  // A2: arranca un stream de GPS al empezar la alarma para tener un fix caliente
+  // cuando venza la cuenta atrás. Antes: 60s de amarillo + 30s de cuenta atrás
+  // sin pedir GPS y, al final, un getCurrentPosition en frío con 5s → timeout →
+  // lastKnown de horas. Ahora la cuenta atrás ES la ventana de calentamiento.
+  void _startGpsWarmup() {
+    _warmGpsSub?.cancel();
+    _warmPos = null;
+    try {
+      _warmGpsSub = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high, distanceFilter: 0),
+      ).listen((p) => _warmPos = p, onError: (_) {});
+    } catch (_) {}
+  }
+
+  void _stopGpsWarmup() {
+    _warmGpsSub?.cancel();
+    _warmGpsSub = null;
   }
 
   // Devuelve cuántos SMS salieron de verdad; 0 = el SOS NO se envió y el
@@ -586,18 +716,34 @@ void onStart(ServiceInstance service) async {
     } catch (_) {}
 
     Position? sosPos;
+    bool posIsStale = false;
     try {
-      try {
-        sosPos = await Geolocator.getCurrentPosition(
-            locationSettings: const LocationSettings(
-                accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 5)));
-      } catch (_) {
-        sosPos = await Geolocator.getLastKnownPosition();
+      // A2: primero el fix caliente del warmup si es reciente; si no, pedir uno
+      // nuevo con margen amplio (15s, no 5 en frío); y como último recurso el
+      // lastKnown, etiquetando su antigüedad más abajo.
+      if (_warmPos != null &&
+          DateTime.now().difference(_warmPos!.timestamp).inSeconds < 40) {
+        sosPos = _warmPos;
+      } else {
+        try {
+          sosPos = await Geolocator.getCurrentPosition(
+              locationSettings: const LocationSettings(
+                  accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 15)));
+        } catch (_) {
+          sosPos = await Geolocator.getLastKnownPosition();
+          posIsStale = sosPos != null;
+        }
       }
       if (sosPos != null) {
+        final int fixAgeSec = DateTime.now().difference(sosPos.timestamp).inSeconds;
+        // Un fix de hace minutos presentado como "posición actual" es peligroso
+        // en un rescate: si viene del lastKnown o es viejo, decir de cuándo es.
+        final String ageNote = (posIsStale || fixAgeSec > 90)
+            ? " | ⏱${(fixAgeSec / 60).round()}min"
+            : "";
         msgBody += "\nMaps: https://maps.google.com/?q=${sosPos.latitude},${sosPos.longitude}";
         msgBody += "\nOSM: https://www.openstreetmap.org/?mlat=${sosPos.latitude}&mlon=${sosPos.longitude}";
-        msgBody += "\n\n🔋Bat: $batteryLevel% | 📡Alt: ${sosPos.altitude.toStringAsFixed(0)}m | 🎯Acc: ${sosPos.accuracy.toStringAsFixed(0)}m";
+        msgBody += "\n\n🔋Bat: $batteryLevel% | 📡Alt: ${sosPos.altitude.toStringAsFixed(0)}m | 🎯Acc: ${sosPos.accuracy.toStringAsFixed(0)}m$ageNote";
       } else {
         msgBody += "\n(GPS Error/Timeout)";
         msgBody += "\n\n🔋Bat: $batteryLevel% (No Loc)";
@@ -608,31 +754,47 @@ void onStart(ServiceInstance service) async {
       msgBody += "\n\n🔋Bat: $batteryLevel% (No Loc)";
     }
 
+    // M3: la adquisición de GPS puede tardar hasta 15s; si el usuario canceló la
+    // alarma en esa ventana (hold-to-cancel apurando el último segundo), NO
+    // enviar. Devolver -1 para que el llamante distinga "cancelado" de "0 SMS".
+    if (!_isAlarmActive) {
+      _logSentinel("SYLVIA SERVICE: 🛑 Alarma cancelada durante la adquisición de GPS. Envío abortado.");
+      _stopGpsWarmup();
+      return -1;
+    }
+
     int sentCount = 0;
     for (String number in _recipients) {
       final target = normalizePhoneE164(number);
-      try {
-        await _telephony.sendSms(
-          to: target,
-          message: msgBody,
-          isMultipart: true,
-        );
+      // Secuencial a propósito: el statusListener del plugin es un único campo
+      // compartido; enviar en paralelo cruzaría las confirmaciones.
+      if (await _sendSmsTracked(target, msgBody)) {
         sentCount++;
-        print("SYLVIA: SMS enviado a $target vía Telephony");
-      } catch (e) {
-        print("SYLVIA ERROR: Fallo al enviar a $target: $e");
       }
     }
 
-    if (sentCount > 0 && sosPos != null) {
-      await _activateBeacon(sosPos);
+    if (sentCount > 0) {
+      if (sosPos != null) {
+        await _activateBeacon(sosPos);
+      } else {
+        // M5: el SOS salió sin fix (montaña, GPS frío). Armar el beacon con
+        // origen pendiente: en cuanto _beaconTick consiga un fix, lo fija como
+        // origen y lo manda — es cuando más vale saber dónde está la víctima.
+        await _activateBeaconPendingOrigin();
+      }
     }
 
+    _stopGpsWarmup();
     if (sentCount > 0) await _reproducirConfirmacion();
     return sentCount;
   }
 
   Future<void> _beaconTick() async {
+    // A3: el checker de 5s invoca esto sin await; dos ticks podían solaparse
+    // (ambos pasar el check de intervalo antes de escribir beacon_last_ts) y
+    // gastar el presupuesto de 20 updates con envíos duplicados.
+    if (_beaconTickBusy) return;
+    _beaconTickBusy = true;
     try {
       final p = await SharedPreferences.getInstance();
       // beacon_active lo apaga la UI ("Reiniciar sistema") desde otro isolate;
@@ -647,11 +809,56 @@ void onStart(ServiceInstance service) async {
       if (now - originTs > _beaconWindowSeconds * 1000 || count >= _beaconMaxUpdates) {
         await p.setBool('beacon_active', false);
         _logSentinel("SYLVIA SERVICE: 📍 Beacon stopped (window/count reached)");
+        // El beacon era lo único que mantenía viva a Sylvia → soltar el wakelock.
+        await _stopIfIdle('beacon window ended');
+        return;
+      }
+
+      // M5: origen pendiente (el SOS salió sin GPS). Establecerlo con el primer
+      // fix disponible y enviarlo — sin esperar al umbral de 300 m ni al de 5 min.
+      if (p.getBool('beacon_origin_pending') ?? false) {
+        if (DateTime.now().difference(_beaconLastProbe).inSeconds < 60) return;
+        _beaconLastProbe = DateTime.now();
+        Position? fp;
+        try {
+          fp = await Geolocator.getCurrentPosition(
+              locationSettings: const LocationSettings(
+                  accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 15)));
+        } catch (_) {
+          fp = await Geolocator.getLastKnownPosition();
+        }
+        if (fp == null) return;
+        await p.setDouble('beacon_origin_lat', fp.latitude);
+        await p.setDouble('beacon_origin_lon', fp.longitude);
+        await p.setDouble('beacon_last_lat', fp.latitude);
+        await p.setDouble('beacon_last_lon', fp.longitude);
+        await p.setInt('beacon_last_ts', DateTime.now().millisecondsSinceEpoch);
+        await p.setInt('beacon_count', count + 1);
+        await p.setBool('beacon_origin_pending', false);
+        final header = _texts['smsBeaconHeader'] ??
+            '📍 OKSIGENIA SOS — automatic follow-up to my emergency alert (this is NOT a new alarm). My updated location:';
+        String msg = "$header\nMaps: https://maps.google.com/?q=${fp.latitude},${fp.longitude}";
+        msg += "\nOSM: https://www.openstreetmap.org/?mlat=${fp.latitude}&mlon=${fp.longitude}";
+        if (_recipients.isEmpty) {
+          _recipients = p.getStringList(PreferencesService.keyContacts) ?? [];
+          if (_recipients.isEmpty) return;
+        }
+        for (final number in _recipients) {
+          await _sendSmsTracked(normalizePhoneE164(number), msg);
+        }
+        _logSentinel("SYLVIA SERVICE: 📍 Beacon origin established from first post-SOS fix");
         return;
       }
 
       final lastTs = p.getInt('beacon_last_ts') ?? originTs;
       if (now - lastTs < _beaconMinIntervalSeconds * 1000) return;
+
+      // A3: pasado el intervalo de envío (5 min), sin esto se sondeaba el GPS en
+      // cada tick de 5s durante horas si la víctima no se movía >300 m. Limitar
+      // el sondeo a 1/min recorta el consumo sin retrasar de forma apreciable un
+      // aviso de movimiento (el intervalo mínimo entre envíos ya es de 5 min).
+      if (DateTime.now().difference(_beaconLastProbe).inSeconds < 60) return;
+      _beaconLastProbe = DateTime.now();
 
       Position? pos;
       try {
@@ -687,11 +894,7 @@ void onStart(ServiceInstance service) async {
         if (_recipients.isEmpty) return;
       }
       for (final number in _recipients) {
-        try {
-          await _telephony.sendSms(to: normalizePhoneE164(number), message: msg, isMultipart: true);
-        } catch (e) {
-          print("SYLVIA: Beacon SMS error: $e");
-        }
+        await _sendSmsTracked(normalizePhoneE164(number), msg);
       }
 
       await p.setDouble('beacon_last_lat', pos.latitude);
@@ -701,6 +904,8 @@ void onStart(ServiceInstance service) async {
       _logSentinel("SYLVIA SERVICE: 📍 Beacon update #${count + 1} sent (delta ${delta.toStringAsFixed(0)}m, total ${totalDist.toStringAsFixed(0)}m)");
     } catch (e) {
       print("SYLVIA: Beacon tick error: $e");
+    } finally {
+      _beaconTickBusy = false;
     }
   }
 
@@ -713,10 +918,20 @@ void onStart(ServiceInstance service) async {
 
   // resumeCountdown: segundos restantes al reanudar una alarma que sobrevivió
   // a un respawn del servicio (Android mató el isolate a mitad de cuenta atrás).
-  Future<void> _lanzarAlarma({int? resumeCountdown}) async {
+  Future<void> _lanzarAlarma({int? resumeCountdown, String cause = 'fall'}) async {
+    // B6: guard de reentrada. Un segundo startAlarm con la cuenta atrás ya en
+    // curso la reiniciaba a 30s. Me apoyo en el timer (no en _isAlarmActive, que
+    // los llamantes internos fijan ANTES de llamar aquí). Se permite reentrar
+    // sólo para REANUDAR tras un respawn (resumeCountdown != null).
+    if ((_zombieTimer?.isActive ?? false) && resumeCountdown == null) {
+      _logSentinel("SYLVIA SERVICE: startAlarm ignorado (cuenta atrás ya en curso)");
+      return;
+    }
     _logSentinel("SYLVIA SERVICE: 🚨 EJECUTANDO PROTOCOLO DE ALARMA"
         "${resumeCountdown != null ? ' (reanudada, ${resumeCountdown}s restantes)' : ''}");
     _isAlarmActive = true;
+    // A2: calentar el GPS ya — la cuenta atrás de 30s es la ventana de warmup.
+    _startGpsWarmup();
     _writeWidgetState('red');
     try { await _cancelInactivityAlarmClock(); } catch (_) {}
     // Pause live tracking during SOS — watchdog checks _isAlarmActive
@@ -768,7 +983,9 @@ void onStart(ServiceInstance service) async {
 
     try {
       if (service is AndroidServiceInstance) service.setAsForegroundService();
-      service.invoke("onAlarmTriggered");
+      // M7: la causa acompaña al evento; sin ella la UI mostraba SIEMPRE "caída"
+      // aunque la alarma fuese por inactividad.
+      service.invoke("onAlarmTriggered", {"cause": cause});
     } catch (e) {
       print("SYLVIA: ❌ onAlarmTriggered: $e");
     }
@@ -788,6 +1005,7 @@ void onStart(ServiceInstance service) async {
       if (!_isAlarmActive) {
          print("SYLVIA SERVICE: 🛑 Alarma cancelada detectada dentro del timer. Abortando.");
          timer.cancel();
+         _stopGpsWarmup(); // A2: no dejar el stream de GPS del warmup colgado
          await _detenerSonido();
          Vibration.cancel();
          return;
@@ -822,6 +1040,11 @@ void onStart(ServiceInstance service) async {
         int sentCount = 0;
         try {
           sentCount = await _enviarSMSZombie();
+
+          // M3: -1 = cancelada durante la adquisición de GPS. stopAlarm ya limpió
+          // (sonido, notificación, flags); no pintar fallo ni confirmar envío.
+          // El finally se ejecuta igual con el return.
+          if (sentCount < 0) return;
 
           final p = prefs ?? await SharedPreferences.getInstance();
           await p.setBool('sos_sent_recently', sentCount > 0);
@@ -1067,6 +1290,8 @@ void onStart(ServiceInstance service) async {
   void _startSensorListener() {
     if (_accSub != null) return;
     _logSentinel("SYLVIA SERVICE: Iniciando escucha de sensores...");
+    _lastRawSample = DateTime.now();
+    _lastUserSample = DateTime.now();
 
     // Z-only bias tracker. The Pixel 8 z-axis reports a stuck constant (~197 m/s²) that
     // would otherwise dominate magnitude. X and Y on healthy sensors oscillate around 0
@@ -1138,6 +1363,7 @@ void onStart(ServiceInstance service) async {
     _rawAccSub?.cancel();
     _rawAccSub = accelerometerEventStream(samplingPeriod: SensorInterval.gameInterval)
         .listen((e) {
+      _lastRawSample = DateTime.now(); // A1: liveness para el watchdog de 5s
       final double rawMag = sqrt(e.x * e.x + e.y * e.y + e.z * e.z);
       lastRawMag = rawMag;
       if (rawMag >= recentRawMax ||
@@ -1176,10 +1402,17 @@ void onStart(ServiceInstance service) async {
           }
         }
       }
+    }, onError: (err) {
+      // A1: sin esto, un error de plataforma cancelaba la suscripción en
+      // silencio y la corroboración raw (recentRawMax) quedaba congelada,
+      // convirtiendo TODO impacto futuro en "fantasma". El watchdog de 5s
+      // detecta el mutismo y resuscribe.
+      _logSentinel("SYLVIA SENSOR: ❌ stream RAW error: $err");
     });
 
     _accSub = userAccelerometerEventStream(samplingPeriod: SensorInterval.gameInterval)
         .listen((event) {
+      _lastUserSample = DateTime.now(); // A1: liveness para el watchdog de 5s
 
       if (DateTime.now().difference(_lastStopTimestamp).inSeconds < 10 ||
           _isAlarmActive ||
@@ -1300,6 +1533,8 @@ void onStart(ServiceInstance service) async {
         }
         _lastG = instantG;
       }
+    }, onError: (err) {
+      _logSentinel("SYLVIA SENSOR: ❌ stream USER error: $err");
     });
   }
 
@@ -1313,6 +1548,7 @@ void onStart(ServiceInstance service) async {
         print("SYLVIA: ▶ Pausa temporizada finalizada. Reanudando.");
         _pausedUntil = DateTime.fromMillisecondsSinceEpoch(0);
         _lastMovementTime = DateTime.now();
+        try { (await SharedPreferences.getInstance()).setInt('paused_until', 0); } catch (_) {} // M1
         if (_isMonitoringInactivity) _scheduleInactivityAlarmClock();
         service.invoke("onPauseResumed");
       }
@@ -1326,6 +1562,7 @@ void onStart(ServiceInstance service) async {
         final int resumeReq = prefs.getInt('pause_resume_requested') ?? 0;
         if (resumeReq > 0) {
           await prefs.setInt('pause_resume_requested', 0);
+          await prefs.setInt('paused_until', 0); // M1
           _pausedUntil = DateTime.fromMillisecondsSinceEpoch(0);
           _lastMovementTime = DateTime.now();
           if (_isMonitoringInactivity) _scheduleInactivityAlarmClock();
@@ -1337,6 +1574,33 @@ void onStart(ServiceInstance service) async {
       // return de pausa: es protocolo de rescate, no monitorización — una
       // pausa no debe dejar a los rescatadores sin actualizaciones.
       _beaconTick();
+
+      // A1: watchdog de streams. Si el monitoreo está activo pero los sensores
+      // llevan >8s mudos (stream muerto por error de plataforma/HAL), resuscribir.
+      // Sin esto la notificación seguía diciendo "protegido" con la detección
+      // caída. _startSensorListener re-inicia los marcadores de liveness.
+      if (_accSub != null &&
+          (_isMonitoringImpact || _isMonitoringInactivity) &&
+          !_isAlarmActive &&
+          DateTime.now().difference(_lastStopTimestamp).inSeconds > 10) {
+        final int userAge = DateTime.now().difference(_lastUserSample).inSeconds;
+        final int rawAge = DateTime.now().difference(_lastRawSample).inSeconds;
+        if (userAge > 8 || rawAge > 8) {
+          _logSentinel("SYLVIA WATCHDOG: ⚠️ Sensores mudos (user=${userAge}s raw=${rawAge}s) → resuscribiendo streams");
+          _accSub?.cancel(); _accSub = null;
+          _rawAccSub?.cancel(); _rawAccSub = null;
+          _startSensorListener();
+        }
+      }
+
+      // M4: barrido de inactividad. Si no queda NADA activo (p. ej. la UI apagó
+      // el beacon o el live-tracking en otro isolate, o terminó su ventana),
+      // parar y soltar el wakelock permanente. _stopIfIdle revalida contra prefs
+      // (beacon_active) antes de parar, así que no corta un beacon vivo.
+      if (!_isMonitoringImpact && !_isMonitoringInactivity &&
+          !_isLiveTrackingActive && !_isAlarmActive) {
+        if (await _stopIfIdle('idle sweep')) return;
+      }
 
       // Update pause countdown in notification
       if (_pausedUntil.isAfter(DateTime.now())) {
@@ -1360,7 +1624,7 @@ void onStart(ServiceInstance service) async {
       if (secondsInactive > _inactivityLimitSeconds) {
         print("SYLVIA BACKGROUND: 💤 INACTIVIDAD DETECTADA ($secondsInactive s)");
         _isAlarmActive = true;
-        _lanzarAlarma();
+        _lanzarAlarma(cause: 'inactivity');
       }
     });
   }
@@ -1387,55 +1651,6 @@ void onStart(ServiceInstance service) async {
     _logSentinel("SYLVIA SERVICE: 🎯 Profile=${profile.name} yellow=${_yellowThreshold}G orange=${_orangeThreshold}G obs=${_observationSeconds}s cv=$_cvUpperBound impactOn=$_impactDetectionEnabled");
   }
 
-  // ÚNICA fuente de verdad de si Sylvia tiene algún motivo para seguir viva.
-  // El foreground service mantiene un wakelock permanente del plugin mientras
-  // exista; si no hay nada activo, ese wakelock drena la batería sin dar
-  // protección a cambio. En montaña (sin WiFi → módem activo; con movimiento →
-  // sin Doze profundo que enmascare el wakelock) eso son horas de batería
-  // perdidas, y sin batería no hay SOS. Conservador a propósito: ante la duda,
-  // seguir viva (un falso "parar" tiraría la protección a mitad de rescate).
-  Future<bool> _shouldStayAlive() async {
-    if (_isMonitoringImpact || _isMonitoringInactivity ||
-        _isLiveTrackingActive || _isAlarmActive) {
-      return true;
-    }
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.reload();
-      if (prefs.getBool('beacon_active') ?? false) return true;
-    } catch (_) {
-      return true; // si no se pueden leer prefs, pecar de seguir viva
-    }
-    return false;
-  }
-
-  // Detiene el foreground service (liberando el wakelock permanente del plugin)
-  // si no queda ningún motivo para seguir vivo. Devuelve true si detuvo.
-  Future<bool> _stopIfIdle(String reason) async {
-    if (await _shouldStayAlive()) return false;
-    _logSentinel("SYLVIA SERVICE: 🌙 Nada activo ($reason) → deteniendo servicio y liberando wakelock");
-    _accSub?.cancel(); _accSub = null;
-    _rawAccSub?.cancel(); _rawAccSub = null;
-    _inactivityCheckTimer?.cancel();
-    _zombieTimer?.cancel();
-    _yellowTimer?.cancel();
-    _shieldTimer?.cancel();
-    await _cancelInactivityAlarmClock();
-    await _cancelLiveTrackingAlarm();
-    try { await flutterLocalNotificationsPlugin.cancelAll(); } catch (_) {}
-    // El wakelock del plugin (estático, PARTIAL_WAKE_LOCK) solo se libera cuando
-    // el PROCESO muere: el plugin hace acquire() pero nunca release(). Por eso
-    // hay que detener el servicio de verdad (stopSelf → isManuallyStopped, sin
-    // watchdog que lo reviva), igual que el handler de "cerrar". Con la UI en
-    // primer plano el proceso no muere aún (la UI lo sostiene); el wakelock se
-    // suelta en cuanto la app pasa a segundo plano / se cierra. NO usar
-    // setAsBackgroundService: dejaba config.isForeground=false persistido y al
-    // rearrancar tras boot el servicio no llamaba startForeground → crash; y la
-    // re-promoción que lo arreglaba reemitía la notif del plugin (hojita + sonido).
-    service.stopSelf();
-    return true;
-  }
-
   Future<void> _loadConfigFromDisk() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -1450,6 +1665,13 @@ void onStart(ServiceInstance service) async {
       bool savedFall = prefs.getBool('fall_detection_enabled') ?? false;
       bool savedInactivity = prefs.getBool('inactivity_monitor_enabled') ?? false;
       _inactivityLimitSeconds = prefs.getInt('inactivity_time') ?? 3600;
+
+      // M1: restaurar una pausa en curso que sobreviva a un respawn del servicio.
+      final int pausedUntilMs = prefs.getInt('paused_until') ?? 0;
+      if (pausedUntilMs > DateTime.now().millisecondsSinceEpoch) {
+        _pausedUntil = DateTime.fromMillisecondsSinceEpoch(pausedUntilMs);
+        _logSentinel("SYLVIA BOOT: ⏸ Pausa restaurada (${_pausedUntil.difference(DateTime.now()).inMinutes} min restantes)");
+      }
 
       _isLiveTrackingActive = prefs.getBool('live_tracking_enabled') ?? false;
       _liveTrackingIntervalSeconds = (prefs.getInt('live_tracking_interval_minutes') ?? 30) * 60;
@@ -1624,6 +1846,13 @@ void onStart(ServiceInstance service) async {
     service.on('setPaused').listen((event) async {
       final int until = event?['until'] ?? 0;
       _pausedUntil = DateTime.fromMillisecondsSinceEpoch(until);
+      // M1: persistir la pausa. Sin esto, si Android mata a Sylvia durante la
+      // pausa (p. ej. 1h en coche), el respawn rearmaba los sensores a mitad de
+      // pausa y un bache disparaba un falso positivo.
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('paused_until', until);
+      } catch (_) {}
       if (until > 0) {
         // Un amarillo en curso no puede sobrevivir a la pausa: con isPaused el
         // buffer se congela, la cancelación por ritmo es imposible y la alarma
@@ -1648,6 +1877,7 @@ void onStart(ServiceInstance service) async {
       _returnToGreen();
       _activarEscudo(segundos: 4);
       _zombieTimer?.cancel();
+      _stopGpsWarmup(); // A2: cerrar el warmup de GPS al cancelar la alarma
       await _cancelInactivityAlarmClock();
       
       _lastMovementTime = DateTime.now().add(const Duration(seconds: 15));
@@ -1694,6 +1924,9 @@ void onStart(ServiceInstance service) async {
       } else {
         await _cancelLiveTrackingAlarm();
         print("SYLVIA: 📍 Live Tracking desactivado.");
+        // M4: si el live-tracking era lo único que mantenía viva a Sylvia,
+        // soltar el wakelock permanente ya (no esperar al barrido de 5s).
+        if (await _stopIfIdle('live tracking off')) return;
       }
     });
 

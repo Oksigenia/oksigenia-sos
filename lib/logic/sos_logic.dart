@@ -35,6 +35,7 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
 
   bool _isFallDetectionActive = false;
   bool _isDyingGaspSent = false;
+  DateTime _lastDyingGaspAttempt = DateTime.fromMillisecondsSinceEpoch(0);
   bool _isInactivityMonitorActive = false;
   DateTime? _pausedUntil;
   int _pauseFrozenElapsed = 0;
@@ -265,10 +266,15 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       notifyListeners();
     }));
 
-    _serviceSubscriptions.add(service.on("onAlarmTriggered").listen((_) {
+    _serviceSubscriptions.add(service.on("onAlarmTriggered").listen((event) {
       _sentinelYellow = false;
       _sentinelOrange = false;
-      _triggerPreAlert(AlertCause.fall, startedByService: true);
+      // M7: respetar la causa que envía Sylvia. Antes era SIEMPRE fall, así que
+      // una alarma de inactividad se mostraba como "IMPACT DETECTED".
+      final String c = (event?["cause"] ?? 'fall').toString();
+      final AlertCause cause =
+          c == 'inactivity' ? AlertCause.inactivity : AlertCause.fall;
+      _triggerPreAlert(cause, startedByService: true);
     }));
 
     _serviceSubscriptions.add(service.on("onSosSent").listen((event) {
@@ -555,11 +561,24 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     _setStatus(SOSStatus.scanning);
     _awaitingServiceSend = true;
     _serviceSendTimeout?.cancel();
-    _serviceSendTimeout = Timer(const Duration(seconds: 90), () {
+    _serviceSendTimeout = Timer(const Duration(seconds: 90), () async {
       if (_awaitingServiceSend) {
         _awaitingServiceSend = false;
-        debugPrint("LOGIC: ❌ Sin confirmación de envío de Sylvia tras 90s.");
-        _setStatus(SOSStatus.error, "Fallo SMS / SMS Failed");
+        debugPrint("LOGIC: ❌ Sin confirmación de Sylvia tras 90s. Fallback de la UI.");
+        // A4: Sylvia no confirmó (muerta o colgada — justo cuando el timer de
+        // inactividad de la UI puede ser el único detector vivo). En vez de
+        // rendirse con "error", la UI —que tiene permiso de SMS y el plugin a
+        // mano— intenta el envío como último recurso. Guard anti-duplicado por
+        // si Sylvia sí llegó a enviar.
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.reload();
+          if (prefs.getBool('sos_sent_recently') ?? false) {
+            _setStatus(SOSStatus.sent);
+            return;
+          }
+        } catch (_) {}
+        await sendSOS();
       }
     });
   }
@@ -916,7 +935,11 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> _triggerDyingGasp() async {
-    _isDyingGaspSent = true; 
+    // M6: NO marcar enviado antes de enviar. Si falla (sin GPS/SMS), reintentar
+    // en el siguiente health-check; throttle de 60s para no vaciar la ya escasa
+    // batería con GPS en bucle. El flag sólo se pone tras un envío real.
+    if (DateTime.now().difference(_lastDyingGaspAttempt).inSeconds < 60) return;
+    _lastDyingGaspAttempt = DateTime.now();
     debugPrint("🪫 DYING GASP ACTIVADO");
 
     final prefs = PreferencesService();
@@ -926,19 +949,22 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     final sharedPrefs = await SharedPreferences.getInstance();
     String langCode = sharedPrefs.getString('language_code') ?? 'en';
     final t = await AppLocalizations.delegate.load(Locale(langCode));
-    
-    String msg = t.smsDyingGasp; 
-    if (msg.isEmpty) msg = "⚠️ BATT <5%. Bye. Loc:"; 
+
+    String msg = t.smsDyingGasp;
+    if (msg.isEmpty) msg = "⚠️ BATT <5%. Bye. Loc:";
 
     try {
       Position pos = await Geolocator.getCurrentPosition(timeLimit: const Duration(seconds: 5))
         .catchError((_) async => await Geolocator.getLastKnownPosition() ?? Position(longitude: 0, latitude: 0, timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, altitudeAccuracy: 0, headingAccuracy: 0));
 
       msg += "\nhttps://maps.google.com/?q=${pos.latitude},${pos.longitude}";
-      
+
+      int sent = 0;
       for (String number in recipients) {
         await _telephony.sendSms(to: normalizePhoneE164(number), message: msg);
+        sent++;
       }
+      if (sent > 0) _isDyingGaspSent = true;
     } catch (e) { debugPrint("❌ Fallo Dying Gasp: $e"); }
   }
 
@@ -1165,8 +1191,8 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
         await sharedPrefs.setInt('beacon_count', 0);
       }
 
-      await platform.invokeMethod('sleepScreen');
-      
+      try { await platform.invokeMethod('sleepScreen'); } catch (_) {}
+
       try {
         _audioPlayer = AudioPlayer();
         await _audioPlayer!.setAudioContext(AudioContext(
