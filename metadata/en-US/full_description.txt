@@ -11,6 +11,7 @@ The accelerometer monitors you continuously at high frequency. A sudden impact t
 Activity profiles
 
 Pick the profile that matches what you're doing — Smart Sentinel adapts its sensitivity:
+
 - Trekking / Hiking: balanced default for walking outdoors.
 - Running (road): tuned for the sustained high-G cadence of road running, with an adaptive rhythm detector.
 - Trail running / MTB: higher impact threshold for terrain with constant vibration.
@@ -54,6 +55,6 @@ Oksigenia SOS asks for sensitive permissions because its job is to call for help
 
 A safety app that prioritised permission minimalism over getting your coordinates to a rescuer would be failing at its only job. The privacy guarantee here is structural, not cosmetic: everything stays on the device.
 
-Available in 11 languages: English, Spanish, French, German, Portuguese, Italian, Dutch, Swedish, Norwegian (Bokmål), Polish and Russian.
+Available in 11 languages.
 
 IMPORTANT: Oksigenia SOS is a support tool and does not replace professional emergency services. Its operation depends on mobile coverage, GPS signal and battery level.

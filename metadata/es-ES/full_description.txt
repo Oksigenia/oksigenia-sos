@@ -5,23 +5,24 @@ Cuando algo va mal, envía un SMS de alerta con tus coordenadas GPS a tu contact
 
 Detección Inteligente de Caídas (Smart Sentinel)
 
-El acelerómetro te monitoriza continuamente a alta frecuencia. Un impacto brusco activa una ventana de observación. Si se detecta movimiento rítmico de marcha durante ese tiempo, la alarma se cancela automáticamente — caídas del móvil o golpes normales no disparan el SOS. Si no hay movimiento rítmico, el SOS se envía.
+El acelerómetro te monitoriza a alta frecuencia. Un impacto brusco abre una ventana de observación: si detecta movimiento rítmico de marcha, cancela la alarma automáticamente — caídas del móvil o golpes normales no disparan el SOS. Si no, el SOS se envía.
 
 
 Perfiles de actividad
 
-Elige el perfil que más se ajuste a lo que estás haciendo — el Smart Sentinel adapta su sensibilidad:
+Elige el perfil que más se ajuste a lo que haces — el Smart Sentinel adapta su sensibilidad:
+
 - Trekking / Senderismo: ajuste equilibrado para caminar al aire libre.
 - Running (asfalto): calibrado para la cadencia sostenida de alta G del running en carretera, con detector de ritmo adaptativo.
 - Trail / MTB: umbral de impacto más alto para terrenos con vibración constante.
 - Alpinismo: ventana de observación más larga para recuperaciones lentas en terreno técnico.
-- Parapente / Kayak / Deportes acuáticos: la detección automática se desactiva (el sensor no interpreta de forma fiable maniobras de vuelo ni movimiento en el agua); el monitor de inactividad y el SOS manual siguen activos.
+- Parapente / Kayak / Acuáticos: la detección automática se desactiva (el sensor no interpreta bien maniobras de vuelo ni movimiento en el agua); el monitor de inactividad y el SOS manual siguen activos.
 - Profesional / Rescate: ventana de observación ampliada para uso operativo avanzado.
 
 
 Monitor de Inactividad (Dead Man's Switch)
 
-Configura un temporizador de check-in. Si no confirmas que estás bien antes de que expire, la alerta se envía automáticamente. Imprescindible en aventuras en solitario donde una caída puede dejarte consciente pero incapaz de pedir ayuda.
+Configura un temporizador de check-in. Si no confirmas que estás bien antes de que expire, la alerta se envía sola. Imprescindible en aventuras en solitario, donde una caída puede dejarte consciente pero incapaz de pedir ayuda.
 
 
 Seguimiento en Vivo
@@ -31,13 +32,13 @@ Envía tu posición GPS por SMS cada 30, 60 o 120 minutos. Pausa, reanuda o haz 
 
 Último Aliento
 
-Cuando la batería baja del 5%, se envía automáticamente un último SMS con tu posición GPS antes de que el teléfono se apague.
+Cuando la batería baja del 5%, se envía un último SMS con tu posición GPS antes de que el teléfono se apague.
 
 
 Privacidad y Compatibilidad
 
 - Sin cuenta ni registro
-- Todos los datos permanecen en tu dispositivo — sin sincronización en la nube ni telemetría
+- Todos los datos permanecen en el dispositivo — sin nube ni telemetría
 - Sin trackers, sin analíticas, sin publicidad
 - Compatible con móviles desgooglelados (GrapheneOS, MicroG)
 - Código abierto bajo licencia GPLv3
@@ -45,15 +46,15 @@ Privacidad y Compatibilidad
 
 Sobre los permisos
 
-Oksigenia SOS pide permisos sensibles porque su trabajo es pedir ayuda cuando tú no puedes. Cada uno corresponde a una única función de rescate:
+Oksigenia SOS pide permisos sensibles porque su trabajo es pedir ayuda cuando tú no puedes. Cada uno corresponde a una función de rescate:
 
-- SMS: envía la alerta. El SMS es el único canal que funciona en la montaña sin internet.
-- Ubicación, incluido «Permitir siempre» (ubicación en segundo plano): cuando te caes, el móvil está en el bolsillo con la pantalla apagada y la app en segundo plano. Sin ese acceso, Android puede negar un fix GPS fresco justo en ese momento, y el SOS saldría sin coordenadas útiles. Tu posición se lee únicamente al enviar una alerta o actualización de seguimiento, y viaja exclusivamente dentro del SMS a los contactos que tú configuraste — nunca se sube a ningún sitio. El único uso de red de la app es un chequeo de versión contra un archivo estático en oksigenia.com, que no lleva datos personales ni ubicación.
+- SMS: envía la alerta — el único canal que funciona en la montaña sin internet.
+- Ubicación, incluido «Permitir siempre» (segundo plano): cuando te caes, el móvil está en el bolsillo con la pantalla apagada, y sin ese acceso Android puede negar un fix GPS fresco justo entonces. Tu posición se lee solo al enviar una alerta o actualización, viaja únicamente dentro del SMS a tus contactos y nunca se sube a ningún sitio. El único uso de red es un chequeo de versión contra un archivo estático en oksigenia.com, sin datos personales ni ubicación.
 - Sensores de movimiento / actividad física: detección de caídas e inactividad.
 - Exención de batería: para que Android no mate el servicio de monitorización a mitad de ruta.
 
-Una app de seguridad que priorizase el minimalismo de permisos frente a hacer llegar tus coordenadas a un rescatador estaría fallando en su único trabajo. La garantía de privacidad aquí es estructural, no cosmética: todo permanece en el dispositivo.
+Anteponer el minimalismo de permisos a hacer llegar tus coordenadas a un rescatador sería fallar en el único trabajo de una app de seguridad. La privacidad aquí es estructural, no cosmética: todo permanece en el dispositivo.
 
-Disponible en 11 idiomas: inglés, español, francés, alemán, portugués, italiano, neerlandés, sueco, noruego (bokmål), polaco y ruso.
+Disponible en 11 idiomas.
 
 IMPORTANTE: Oksigenia SOS es una herramienta de apoyo y NO sustituye a los servicios de emergencia profesionales. Su funcionamiento depende de la cobertura móvil, la señal GPS y el nivel de batería.
