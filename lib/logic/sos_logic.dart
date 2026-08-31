@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; 
@@ -11,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:vibration/vibration.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:battery_plus/battery_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:oksigenia_sos/l10n/app_localizations.dart'; 
 import 'package:another_telephony/telephony.dart';
 import 'activity_profile.dart';
@@ -592,7 +594,7 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     _preAlertTimer?.cancel();
 
     if (sentCount <= 0) {
-      _setStatus(SOSStatus.error, "Fallo SMS / SMS Failed");
+      _setStatus(SOSStatus.error, "SMS_FAILED");
       return;
     }
 
@@ -934,6 +936,22 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  // C2 (extendido a la UI): el envío manual sólo hacía debugPrint → el motivo
+  // real de un fallo de SMS quedaba en logcat, invisible en el sentinel.log que
+  // revisa el usuario (bug #12: "no vi nada en el log"). Escribe el motivo en el
+  // MISMO archivo que Sylvia (mismo path externo), SIN PII: nunca el número del
+  // contacto (el usuario puede pegar el log en público). Diagnóstico esporádico
+  // → append simple con flush.
+  Future<void> _logSmsDiag(String line) async {
+    try {
+      Directory? dir = await getExternalStorageDirectory();
+      dir ??= await getApplicationDocumentsDirectory();
+      final ts = DateTime.now().toIso8601String();
+      await File('${dir.path}/sentinel.log')
+          .writeAsString('$ts $line\n', mode: FileMode.append, flush: true);
+    } catch (_) {}
+  }
+
   Future<void> _triggerDyingGasp() async {
     // M6: NO marcar enviado antes de enviar. Si falla (sin GPS/SMS), reintentar
     // en el siguiente health-check; throttle de 60s para no vaciar la ya escasa
@@ -965,7 +983,10 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
         sent++;
       }
       if (sent > 0) _isDyingGaspSent = true;
-    } catch (e) { debugPrint("❌ Fallo Dying Gasp: $e"); }
+    } catch (e) {
+      debugPrint("❌ Fallo Dying Gasp: $e");
+      _logSmsDiag("UI DYING GASP FAIL: $e");
+    }
   }
 
   void cancelAlert() => cancelSOS();
@@ -1161,7 +1182,13 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
           isMultipart: true
         );
         successCount++;
-      } catch (e) { debugPrint("Error enviando: $e"); }
+      } catch (e) {
+        debugPrint("Error enviando: $e");
+        _logSmsDiag("UI SOS SMS FAIL: $e"); // C2: motivo real al sentinel.log (sin PII)
+      }
+    }
+    if (successCount < recipients.length) {
+      _logSmsDiag("UI SOS: sólo $successCount/${recipients.length} SMS entregados a SmsManager");
     }
 
     if (successCount > 0) {
@@ -1208,7 +1235,7 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       int interval = prefs.getUpdateInterval();
       if (interval > 0) _startPeriodicUpdates(interval, recipients);
     } else {
-      _setStatus(SOSStatus.error, "Fallo SMS / SMS Failed");
+      _setStatus(SOSStatus.error, "SMS_FAILED");
     }
   }
 
