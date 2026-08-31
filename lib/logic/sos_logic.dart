@@ -18,6 +18,7 @@ import 'package:another_telephony/telephony.dart';
 import 'activity_profile.dart';
 import '../services/preferences_service.dart';
 import '../utils/phone_utils.dart';
+import '../utils/sms_splitter.dart';
 import '../screens/settings_screen.dart';  
 import '../screens/alarm_screen.dart';
 import '../screens/sent_screen.dart';
@@ -952,6 +953,28 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     } catch (_) {}
   }
 
+  // issue #12: enviar troceado con isMultipart:false (sendTextMessage). La vía
+  // multipart lanza getGroupIdLevel1/READ_PHONE_STATE en Android 17/GrapheneOS.
+  // Troceo sin partir enlaces (sms_splitter). Devuelve true si salió al menos la
+  // primera pieza (la crítica: SOS + coordenadas).
+  Future<bool> _sendSmsChunked(String to, String message) async {
+    final parts = splitSmsSafely(message);
+    int ok = 0;
+    for (final part in parts) {
+      try {
+        await _telephony.sendSms(to: to, message: part, isMultipart: false);
+        ok++;
+      } catch (e) {
+        debugPrint("Error enviando pieza: $e");
+        _logSmsDiag("UI SMS FAIL (pieza ${ok + 1}/${parts.length}): $e");
+      }
+    }
+    if (ok < parts.length) {
+      _logSmsDiag("UI SMS: enviadas $ok/${parts.length} piezas");
+    }
+    return ok > 0;
+  }
+
   Future<void> _triggerDyingGasp() async {
     // M6: NO marcar enviado antes de enviar. Si falla (sin GPS/SMS), reintentar
     // en el siguiente health-check; throttle de 60s para no vaciar la ya escasa
@@ -975,12 +998,11 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       Position pos = await Geolocator.getCurrentPosition(timeLimit: const Duration(seconds: 5))
         .catchError((_) async => await Geolocator.getLastKnownPosition() ?? Position(longitude: 0, latitude: 0, timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, altitudeAccuracy: 0, headingAccuracy: 0));
 
-      msg += "\nhttps://maps.google.com/?q=${pos.latitude},${pos.longitude}";
+      msg += "\nhttps://maps.google.com/?q=${pos.latitude.toStringAsFixed(6)},${pos.longitude.toStringAsFixed(6)}";
 
       int sent = 0;
       for (String number in recipients) {
-        await _telephony.sendSms(to: normalizePhoneE164(number), message: msg);
-        sent++;
+        if (await _sendSmsChunked(normalizePhoneE164(number), msg)) sent++;
       }
       if (sent > 0) _isDyingGaspSent = true;
     } catch (e) {
@@ -1161,8 +1183,8 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       }
       if (sosPos != null) {
         _setStatus(SOSStatus.locationFixed);
-        msgBody += "\nMaps: https://maps.google.com/?q=${sosPos.latitude},${sosPos.longitude}";
-        msgBody += "\nOSM: https://www.openstreetmap.org/?mlat=${sosPos.latitude}&mlon=${sosPos.longitude}";
+        msgBody += "\nMaps: https://maps.google.com/?q=${sosPos.latitude.toStringAsFixed(6)},${sosPos.longitude.toStringAsFixed(6)}";
+        msgBody += "\nOSM: https://www.openstreetmap.org/?mlat=${sosPos.latitude.toStringAsFixed(6)}&mlon=${sosPos.longitude.toStringAsFixed(6)}";
         msgBody += "\n\n🔋Bat: $batteryLevel% | 📡Alt: ${sosPos.altitude.toStringAsFixed(0)}m | 🎯Acc: ${sosPos.accuracy.toStringAsFixed(0)}m";
       } else {
         msgBody += "\n(GPS Error/Timeout)";
@@ -1175,20 +1197,10 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
 
     int successCount = 0;
     for (String number in recipients) {
-      try {
-        await _telephony.sendSms(
-          to: normalizePhoneE164(number),
-          message: msgBody,
-          isMultipart: true
-        );
-        successCount++;
-      } catch (e) {
-        debugPrint("Error enviando: $e");
-        _logSmsDiag("UI SOS SMS FAIL: $e"); // C2: motivo real al sentinel.log (sin PII)
-      }
+      if (await _sendSmsChunked(normalizePhoneE164(number), msgBody)) successCount++;
     }
     if (successCount < recipients.length) {
-      _logSmsDiag("UI SOS: sólo $successCount/${recipients.length} SMS entregados a SmsManager");
+      _logSmsDiag("UI SOS: sólo $successCount/${recipients.length} contactos recibieron el SOS");
     }
 
     if (successCount > 0) {
@@ -1247,9 +1259,9 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       try {
         Position pos = await Geolocator.getCurrentPosition(timeLimit: const Duration(seconds: 20));
         String updateMsg = "📍 SEGUIMIENTO Oksigenia: Sigo en ruta / Still moving.";
-        updateMsg += "\nMaps: https://maps.google.com/?q=${pos.latitude},${pos.longitude}";
-        updateMsg += "\nOSM: https://www.openstreetmap.org/?mlat=${pos.latitude}&mlon=${pos.longitude}";
-        await _telephony.sendSms(to: target, message: updateMsg);
+        updateMsg += "\nMaps: https://maps.google.com/?q=${pos.latitude.toStringAsFixed(6)},${pos.longitude.toStringAsFixed(6)}";
+        updateMsg += "\nOSM: https://www.openstreetmap.org/?mlat=${pos.latitude.toStringAsFixed(6)}&mlon=${pos.longitude.toStringAsFixed(6)}";
+        await _sendSmsChunked(target, updateMsg);
       } catch (e) {}
     });
   }
