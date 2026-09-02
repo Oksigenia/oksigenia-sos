@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; 
@@ -11,11 +12,13 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:vibration/vibration.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:battery_plus/battery_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:oksigenia_sos/l10n/app_localizations.dart'; 
 import 'package:another_telephony/telephony.dart';
 import 'activity_profile.dart';
 import '../services/preferences_service.dart';
 import '../utils/phone_utils.dart';
+import '../utils/sms_splitter.dart';
 import '../screens/settings_screen.dart';  
 import '../screens/alarm_screen.dart';
 import '../screens/sent_screen.dart';
@@ -35,6 +38,7 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
 
   bool _isFallDetectionActive = false;
   bool _isDyingGaspSent = false;
+  DateTime _lastDyingGaspAttempt = DateTime.fromMillisecondsSinceEpoch(0);
   bool _isInactivityMonitorActive = false;
   DateTime? _pausedUntil;
   int _pauseFrozenElapsed = 0;
@@ -265,10 +269,15 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       notifyListeners();
     }));
 
-    _serviceSubscriptions.add(service.on("onAlarmTriggered").listen((_) {
+    _serviceSubscriptions.add(service.on("onAlarmTriggered").listen((event) {
       _sentinelYellow = false;
       _sentinelOrange = false;
-      _triggerPreAlert(AlertCause.fall, startedByService: true);
+      // M7: respetar la causa que envía Sylvia. Antes era SIEMPRE fall, así que
+      // una alarma de inactividad se mostraba como "IMPACT DETECTED".
+      final String c = (event?["cause"] ?? 'fall').toString();
+      final AlertCause cause =
+          c == 'inactivity' ? AlertCause.inactivity : AlertCause.fall;
+      _triggerPreAlert(cause, startedByService: true);
     }));
 
     _serviceSubscriptions.add(service.on("onSosSent").listen((event) {
@@ -465,6 +474,15 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
 
     final rawPrefs = await SharedPreferences.getInstance();
 
+    // M1 (lado UI): restaurar una pausa en curso tras un respawn. Sylvia ya la
+    // restaura por su lado (paused_until en prefs), pero la UI tenía su
+    // _pausedUntil solo en memoria → al reabrir mostraba "activo" mientras el
+    // servicio seguía pausado (engañoso). Releerla aquí alinea la UI con Sylvia.
+    final int pausedUntilMs = rawPrefs.getInt('paused_until') ?? 0;
+    if (pausedUntilMs > DateTime.now().millisecondsSinceEpoch) {
+      _pausedUntil = DateTime.fromMillisecondsSinceEpoch(pausedUntilMs);
+    }
+
     // Check if inactivity AlarmClock fired during Doze (screen was off, Timer was frozen)
     final int scheduledFor = rawPrefs.getInt('inactivity_alarm_scheduled_for') ?? 0;
     final bool inactivityWasEnabled = rawPrefs.getBool('inactivity_monitor_enabled') ?? false;
@@ -555,11 +573,24 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     _setStatus(SOSStatus.scanning);
     _awaitingServiceSend = true;
     _serviceSendTimeout?.cancel();
-    _serviceSendTimeout = Timer(const Duration(seconds: 90), () {
+    _serviceSendTimeout = Timer(const Duration(seconds: 90), () async {
       if (_awaitingServiceSend) {
         _awaitingServiceSend = false;
-        debugPrint("LOGIC: ❌ Sin confirmación de envío de Sylvia tras 90s.");
-        _setStatus(SOSStatus.error, "Fallo SMS / SMS Failed");
+        debugPrint("LOGIC: ❌ Sin confirmación de Sylvia tras 90s. Fallback de la UI.");
+        // A4: Sylvia no confirmó (muerta o colgada — justo cuando el timer de
+        // inactividad de la UI puede ser el único detector vivo). En vez de
+        // rendirse con "error", la UI —que tiene permiso de SMS y el plugin a
+        // mano— intenta el envío como último recurso. Guard anti-duplicado por
+        // si Sylvia sí llegó a enviar.
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.reload();
+          if (prefs.getBool('sos_sent_recently') ?? false) {
+            _setStatus(SOSStatus.sent);
+            return;
+          }
+        } catch (_) {}
+        await sendSOS();
       }
     });
   }
@@ -573,7 +604,7 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     _preAlertTimer?.cancel();
 
     if (sentCount <= 0) {
-      _setStatus(SOSStatus.error, "Fallo SMS / SMS Failed");
+      _setStatus(SOSStatus.error, "SMS_FAILED");
       return;
     }
 
@@ -915,8 +946,50 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  // C2 (extendido a la UI): el envío manual sólo hacía debugPrint → el motivo
+  // real de un fallo de SMS quedaba en logcat, invisible en el sentinel.log que
+  // revisa el usuario (bug #12: "no vi nada en el log"). Escribe el motivo en el
+  // MISMO archivo que Sylvia (mismo path externo), SIN PII: nunca el número del
+  // contacto (el usuario puede pegar el log en público). Diagnóstico esporádico
+  // → append simple con flush.
+  Future<void> _logSmsDiag(String line) async {
+    try {
+      Directory? dir = await getExternalStorageDirectory();
+      dir ??= await getApplicationDocumentsDirectory();
+      final ts = DateTime.now().toIso8601String();
+      await File('${dir.path}/sentinel.log')
+          .writeAsString('$ts $line\n', mode: FileMode.append, flush: true);
+    } catch (_) {}
+  }
+
+  // issue #12: enviar troceado con isMultipart:false (sendTextMessage). La vía
+  // multipart lanza getGroupIdLevel1/READ_PHONE_STATE en Android 17/GrapheneOS.
+  // Troceo sin partir enlaces (sms_splitter). Devuelve true si salió al menos la
+  // primera pieza (la crítica: SOS + coordenadas).
+  Future<bool> _sendSmsChunked(String to, String message) async {
+    final parts = splitSmsSafely(message);
+    int ok = 0;
+    for (final part in parts) {
+      try {
+        await _telephony.sendSms(to: to, message: part, isMultipart: false);
+        ok++;
+      } catch (e) {
+        debugPrint("Error enviando pieza: $e");
+        _logSmsDiag("UI SMS FAIL (pieza ${ok + 1}/${parts.length}): $e");
+      }
+    }
+    if (ok < parts.length) {
+      _logSmsDiag("UI SMS: enviadas $ok/${parts.length} piezas");
+    }
+    return ok > 0;
+  }
+
   Future<void> _triggerDyingGasp() async {
-    _isDyingGaspSent = true; 
+    // M6: NO marcar enviado antes de enviar. Si falla (sin GPS/SMS), reintentar
+    // en el siguiente health-check; throttle de 60s para no vaciar la ya escasa
+    // batería con GPS en bucle. El flag sólo se pone tras un envío real.
+    if (DateTime.now().difference(_lastDyingGaspAttempt).inSeconds < 60) return;
+    _lastDyingGaspAttempt = DateTime.now();
     debugPrint("🪫 DYING GASP ACTIVADO");
 
     final prefs = PreferencesService();
@@ -926,20 +999,25 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     final sharedPrefs = await SharedPreferences.getInstance();
     String langCode = sharedPrefs.getString('language_code') ?? 'en';
     final t = await AppLocalizations.delegate.load(Locale(langCode));
-    
-    String msg = t.smsDyingGasp; 
-    if (msg.isEmpty) msg = "⚠️ BATT <5%. Bye. Loc:"; 
+
+    String msg = t.smsDyingGasp;
+    if (msg.isEmpty) msg = "⚠️ BATT <5%. Bye. Loc:";
 
     try {
       Position pos = await Geolocator.getCurrentPosition(timeLimit: const Duration(seconds: 5))
         .catchError((_) async => await Geolocator.getLastKnownPosition() ?? Position(longitude: 0, latitude: 0, timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, altitudeAccuracy: 0, headingAccuracy: 0));
 
-      msg += "\nhttps://maps.google.com/?q=${pos.latitude},${pos.longitude}";
-      
+      msg += "\nhttps://maps.google.com/?q=${pos.latitude.toStringAsFixed(6)},${pos.longitude.toStringAsFixed(6)}";
+
+      int sent = 0;
       for (String number in recipients) {
-        await _telephony.sendSms(to: normalizePhoneE164(number), message: msg);
+        if (await _sendSmsChunked(normalizePhoneE164(number), msg)) sent++;
       }
-    } catch (e) { debugPrint("❌ Fallo Dying Gasp: $e"); }
+      if (sent > 0) _isDyingGaspSent = true;
+    } catch (e) {
+      debugPrint("❌ Fallo Dying Gasp: $e");
+      _logSmsDiag("UI DYING GASP FAIL: $e");
+    }
   }
 
   void cancelAlert() => cancelSOS();
@@ -1089,18 +1167,20 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     _gpsSubscription?.cancel();
     int batteryLevel = await _battery.batteryLevel;
 
-    String msgBody = "🆘 SOS OKSIGENIA";
-    if (customNote.isNotEmpty) {
-      msgBody += "\n$customNote"; 
-    } else {
+    // Nota (personalizada o de ayuda), colocada tras el enlace de Maps para que
+    // las coordenadas viajen en el primer SMS.
+    String note = customNote;
+    if (note.isEmpty) {
       final sharedPrefs = await SharedPreferences.getInstance();
       String langCode = sharedPrefs.getString('language_code') ?? 'en';
       final t = await AppLocalizations.delegate.load(Locale(langCode));
-      String helpText = t.smsHelpMessage; 
-      if (helpText.isEmpty) helpText = "HELP!"; 
-      msgBody += "\n$helpText"; 
+      note = t.smsHelpMessage;
+      if (note.isEmpty) note = "HELP!";
     }
-    
+
+    // #12: sin emojis en el cuerpo (fuerzan UCS-2 → más piezas). Ver sms_splitter.
+    String msgBody = "SOS OKSIGENIA";
+
     Position? sosPos;
     try {
       try {
@@ -1114,28 +1194,28 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       }
       if (sosPos != null) {
         _setStatus(SOSStatus.locationFixed);
-        msgBody += "\nMaps: https://maps.google.com/?q=${sosPos.latitude},${sosPos.longitude}";
-        msgBody += "\nOSM: https://www.openstreetmap.org/?mlat=${sosPos.latitude}&mlon=${sosPos.longitude}";
-        msgBody += "\n\n🔋Bat: $batteryLevel% | 📡Alt: ${sosPos.altitude.toStringAsFixed(0)}m | 🎯Acc: ${sosPos.accuracy.toStringAsFixed(0)}m";
+        // Crítico primero: Maps con coordenadas justo tras la cabecera.
+        msgBody += "\nMaps: https://maps.google.com/?q=${sosPos.latitude.toStringAsFixed(6)},${sosPos.longitude.toStringAsFixed(6)}";
+        msgBody += "\n$note";
+        msgBody += "\nOSM: https://www.openstreetmap.org/?mlat=${sosPos.latitude.toStringAsFixed(6)}&mlon=${sosPos.longitude.toStringAsFixed(6)}";
+        msgBody += "\nBat: $batteryLevel% | Alt: ${sosPos.altitude.toStringAsFixed(0)}m | Acc: ${sosPos.accuracy.toStringAsFixed(0)}m";
       } else {
+        msgBody += "\n$note";
         msgBody += "\n(GPS Error/Timeout)";
-        msgBody += "\n\n🔋Bat: $batteryLevel% (No Loc)";
+        msgBody += "\nBat: $batteryLevel% (No Loc)";
       }
     } catch (e) {
+      msgBody += "\n$note";
       msgBody += "\n(GPS Error/Timeout)";
-      msgBody += "\n\n🔋Bat: $batteryLevel% (No Loc)";
+      msgBody += "\nBat: $batteryLevel% (No Loc)";
     }
 
     int successCount = 0;
     for (String number in recipients) {
-      try {
-        await _telephony.sendSms(
-          to: normalizePhoneE164(number),
-          message: msgBody,
-          isMultipart: true
-        );
-        successCount++;
-      } catch (e) { debugPrint("Error enviando: $e"); }
+      if (await _sendSmsChunked(normalizePhoneE164(number), msgBody)) successCount++;
+    }
+    if (successCount < recipients.length) {
+      _logSmsDiag("UI SOS: sólo $successCount/${recipients.length} contactos recibieron el SOS");
     }
 
     if (successCount > 0) {
@@ -1165,8 +1245,8 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
         await sharedPrefs.setInt('beacon_count', 0);
       }
 
-      await platform.invokeMethod('sleepScreen');
-      
+      try { await platform.invokeMethod('sleepScreen'); } catch (_) {}
+
       try {
         _audioPlayer = AudioPlayer();
         await _audioPlayer!.setAudioContext(AudioContext(
@@ -1182,7 +1262,7 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       int interval = prefs.getUpdateInterval();
       if (interval > 0) _startPeriodicUpdates(interval, recipients);
     } else {
-      _setStatus(SOSStatus.error, "Fallo SMS / SMS Failed");
+      _setStatus(SOSStatus.error, "SMS_FAILED");
     }
   }
 
@@ -1194,9 +1274,9 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       try {
         Position pos = await Geolocator.getCurrentPosition(timeLimit: const Duration(seconds: 20));
         String updateMsg = "📍 SEGUIMIENTO Oksigenia: Sigo en ruta / Still moving.";
-        updateMsg += "\nMaps: https://maps.google.com/?q=${pos.latitude},${pos.longitude}";
-        updateMsg += "\nOSM: https://www.openstreetmap.org/?mlat=${pos.latitude}&mlon=${pos.longitude}";
-        await _telephony.sendSms(to: target, message: updateMsg);
+        updateMsg += "\nMaps: https://maps.google.com/?q=${pos.latitude.toStringAsFixed(6)},${pos.longitude.toStringAsFixed(6)}";
+        updateMsg += "\nOSM: https://www.openstreetmap.org/?mlat=${pos.latitude.toStringAsFixed(6)}&mlon=${pos.longitude.toStringAsFixed(6)}";
+        await _sendSmsChunked(target, updateMsg);
       } catch (e) {}
     });
   }

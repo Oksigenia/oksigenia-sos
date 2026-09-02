@@ -603,9 +603,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ti
                 child: Column(
                   children: [
                     Text(
-                      _sosLogic.errorMessage == "NO_CONTACT" 
-                          ? l10n.errorNoContact 
-                          : _sosLogic.errorMessage, 
+                      _sosLogic.errorMessage == "NO_CONTACT"
+                          ? l10n.errorNoContact
+                          : _sosLogic.errorMessage == "SMS_FAILED"
+                              ? l10n.statusSendFailed
+                              : _sosLogic.errorMessage,
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 16)
                     ),
