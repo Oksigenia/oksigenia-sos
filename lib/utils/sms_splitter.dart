@@ -15,7 +15,14 @@
 const int _gsmLimit = 152; // margen bajo 160
 const int _ucs2Limit = 67; // margen bajo 70
 
-bool _isUcs2(String s) => s.runes.any((r) => r > 0x7F);
+// GSM 03.38: caracteres NO-ASCII que sí caben en GSM 7-bit y por tanto NO
+// fuerzan UCS-2. Incluye ¡ ¿ ñ, umlauts alemanes, acento grave + é del italiano,
+// y nórdicos. NO incluye á í ó ú (acento agudo salvo é), guiones largos, emojis,
+// cirílico ni acentos polacos/portugueses raros → esos van a UCS-2 (conservador).
+final Set<int> _gsmExtra = "¡¿ñÑäöüÄÖÜßàèéìòùÀÈÉÌÒÙåÅøØæÆÇ".runes.toSet();
+
+// UCS-2 si hay algún carácter no-ASCII que no sea GSM-extra. (ASCII siempre GSM.)
+bool _isUcs2(String s) => s.runes.any((r) => r > 0x7F && !_gsmExtra.contains(r));
 
 // Longitud en unidades que cuenta el SMS: UTF-16 code units (un emoji fuera del
 // BMP cuenta 2, igual que en un SMS UCS-2). Para GSM el margen absorbe los

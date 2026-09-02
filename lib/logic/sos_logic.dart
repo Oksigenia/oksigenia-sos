@@ -1158,18 +1158,20 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     _gpsSubscription?.cancel();
     int batteryLevel = await _battery.batteryLevel;
 
-    String msgBody = "🆘 SOS OKSIGENIA";
-    if (customNote.isNotEmpty) {
-      msgBody += "\n$customNote"; 
-    } else {
+    // Nota (personalizada o de ayuda), colocada tras el enlace de Maps para que
+    // las coordenadas viajen en el primer SMS.
+    String note = customNote;
+    if (note.isEmpty) {
       final sharedPrefs = await SharedPreferences.getInstance();
       String langCode = sharedPrefs.getString('language_code') ?? 'en';
       final t = await AppLocalizations.delegate.load(Locale(langCode));
-      String helpText = t.smsHelpMessage; 
-      if (helpText.isEmpty) helpText = "HELP!"; 
-      msgBody += "\n$helpText"; 
+      note = t.smsHelpMessage;
+      if (note.isEmpty) note = "HELP!";
     }
-    
+
+    // #12: sin emojis en el cuerpo (fuerzan UCS-2 → más piezas). Ver sms_splitter.
+    String msgBody = "SOS OKSIGENIA";
+
     Position? sosPos;
     try {
       try {
@@ -1183,16 +1185,20 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       }
       if (sosPos != null) {
         _setStatus(SOSStatus.locationFixed);
+        // Crítico primero: Maps con coordenadas justo tras la cabecera.
         msgBody += "\nMaps: https://maps.google.com/?q=${sosPos.latitude.toStringAsFixed(6)},${sosPos.longitude.toStringAsFixed(6)}";
+        msgBody += "\n$note";
         msgBody += "\nOSM: https://www.openstreetmap.org/?mlat=${sosPos.latitude.toStringAsFixed(6)}&mlon=${sosPos.longitude.toStringAsFixed(6)}";
-        msgBody += "\n\n🔋Bat: $batteryLevel% | 📡Alt: ${sosPos.altitude.toStringAsFixed(0)}m | 🎯Acc: ${sosPos.accuracy.toStringAsFixed(0)}m";
+        msgBody += "\nBat: $batteryLevel% | Alt: ${sosPos.altitude.toStringAsFixed(0)}m | Acc: ${sosPos.accuracy.toStringAsFixed(0)}m";
       } else {
+        msgBody += "\n$note";
         msgBody += "\n(GPS Error/Timeout)";
-        msgBody += "\n\n🔋Bat: $batteryLevel% (No Loc)";
+        msgBody += "\nBat: $batteryLevel% (No Loc)";
       }
     } catch (e) {
+      msgBody += "\n$note";
       msgBody += "\n(GPS Error/Timeout)";
-      msgBody += "\n\n🔋Bat: $batteryLevel% (No Loc)";
+      msgBody += "\nBat: $batteryLevel% (No Loc)";
     }
 
     int successCount = 0;

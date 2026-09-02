@@ -708,12 +708,15 @@ void onStart(ServiceInstance service) async {
       }
     }
 
-    String msgBody = "🆘 SOS OKSIGENIA";
-    if (_customMessage.isNotEmpty) {
-      msgBody += "\n$_customMessage";
-    } else {
-      msgBody += "\n${_texts['smsHelpMessage']}";
-    }
+    // Nota (personalizada o de ayuda): se compone aquí pero se coloca DESPUÉS
+    // del enlace de Maps, para que las coordenadas viajen en el primer SMS.
+    final String note = _customMessage.isNotEmpty
+        ? _customMessage
+        : (_texts['smsHelpMessage'] ?? 'HELP! SOS!');
+
+    // #12: sin emojis en el cuerpo del SMS — fuerzan UCS-2 (67 chars/SMS) y
+    // multiplican las piezas; en texto plano el SMS es GSM (152). Ver sms_splitter.
+    String msgBody = "SOS OKSIGENIA";
 
     int batteryLevel = 0;
     try {
@@ -744,19 +747,23 @@ void onStart(ServiceInstance service) async {
         // Un fix de hace minutos presentado como "posición actual" es peligroso
         // en un rescate: si viene del lastKnown o es viejo, decir de cuándo es.
         final String ageNote = (posIsStale || fixAgeSec > 90)
-            ? " | ⏱${(fixAgeSec / 60).round()}min"
+            ? " | ${(fixAgeSec / 60).round()}min"
             : "";
+        // Crítico primero: Maps con coordenadas justo tras la cabecera.
         msgBody += "\nMaps: https://maps.google.com/?q=${sosPos.latitude.toStringAsFixed(6)},${sosPos.longitude.toStringAsFixed(6)}";
+        msgBody += "\n$note";
         msgBody += "\nOSM: https://www.openstreetmap.org/?mlat=${sosPos.latitude.toStringAsFixed(6)}&mlon=${sosPos.longitude.toStringAsFixed(6)}";
-        msgBody += "\n\n🔋Bat: $batteryLevel% | 📡Alt: ${sosPos.altitude.toStringAsFixed(0)}m | 🎯Acc: ${sosPos.accuracy.toStringAsFixed(0)}m$ageNote";
+        msgBody += "\nBat: $batteryLevel% | Alt: ${sosPos.altitude.toStringAsFixed(0)}m | Acc: ${sosPos.accuracy.toStringAsFixed(0)}m$ageNote";
       } else {
+        msgBody += "\n$note";
         msgBody += "\n(GPS Error/Timeout)";
-        msgBody += "\n\n🔋Bat: $batteryLevel% (No Loc)";
+        msgBody += "\nBat: $batteryLevel% (No Loc)";
       }
     } catch (e) {
       print("SYLVIA ERROR: GPS Falló ($e). Enviando sin loc.");
+      msgBody += "\n$note";
       msgBody += "\n(GPS Error/Timeout)";
-      msgBody += "\n\n🔋Bat: $batteryLevel% (No Loc)";
+      msgBody += "\nBat: $batteryLevel% (No Loc)";
     }
 
     // M3: la adquisición de GPS puede tardar hasta 15s; si el usuario canceló la
