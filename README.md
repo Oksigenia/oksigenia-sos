@@ -1,4 +1,4 @@
-# Oksigenia SOS 🏔️ v4.2.5 "Running"
+# Oksigenia SOS 🏔️ v4.3.0 "Running"
 
 **The Ultimate Outdoor Guardian | FOSS | Privacy-First | Autonomous**
 
@@ -47,6 +47,12 @@ The interface is designed for high-stress situations. High contrast, large touch
 |:---:|:---:|
 | <img src="screenshots/main_testmode_en.jpg" width="180" /> | <img src="screenshots/lang_en.jpg" width="180" /> |
 | *Safe testing environment* | *11 native languages* |
+
+---
+
+## 📶 What's New in v4.3.0: SMS fix for Android 17 + reliability
+
+On Android 17 / GrapheneOS the emergency SMS could silently fail to send: the system's multipart-SMS path now demands the `READ_PHONE_STATE` permission, which Oksigenia deliberately never requests. v4.3.0 splits every message itself and sends each part with `sendTextMessage`, which needs no phone-identity permission — so the SOS reaches your contacts again, on the latest Android and without giving up an ounce of privacy (no new permissions, same single signature). The emergency message was also restructured so your coordinates travel in the **first** SMS with links intact, plus a batch of resilience fixes from a full code audit: anti-Doze alarms that actually schedule, sensor streams that auto-recover, and a service that truly stops when disabled. Validated on device (Pixel 8 / GrapheneOS / Android 17); same signing key, updates cleanly.
 
 ---
 

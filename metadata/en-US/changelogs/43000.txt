@@ -1,0 +1,7 @@
+v4.3.0 — SMS fix for Android 17/GrapheneOS + reliability
+
+- Fixed: emergency SMS could silently fail to send on Android 17 / GrapheneOS. SOS messages send reliably again, without requesting any extra permission.
+- Emergency SMS reworked: your coordinates travel in the first message, links kept intact, cleaner text.
+- Battery: the monitoring service now fully stops and releases its wake lock when you turn monitoring off.
+- More reliable anti-Doze inactivity alarms; sensor monitoring auto-recovers if a stream drops.
+- Same signing key, updates cleanly over any previous install.

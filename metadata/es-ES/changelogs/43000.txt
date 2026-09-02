@@ -1,0 +1,7 @@
+v4.3.0 — Arreglo de SMS en Android 17/GrapheneOS + fiabilidad
+
+- Corregido: el SMS de emergencia podía fallar en silencio en Android 17 / GrapheneOS. El SOS vuelve a enviarse con fiabilidad, sin pedir ningún permiso extra.
+- SMS de emergencia rehecho: tus coordenadas van en el primer mensaje, con los enlaces intactos y texto más limpio.
+- Batería: el servicio de monitorización se detiene del todo y libera el wakelock al desactivar la monitorización.
+- Alarmas anti-Doze de inactividad más fiables; la monitorización de sensores se autorrecupera si un flujo se cae.
+- Misma firma; actualiza sin problemas sobre cualquier instalación previa.
