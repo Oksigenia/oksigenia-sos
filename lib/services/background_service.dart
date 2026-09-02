@@ -994,7 +994,10 @@ void onStart(ServiceInstance service) async {
     }
 
     try {
-      if (service is AndroidServiceInstance) service.setAsForegroundService();
+      // NO llamar setAsForegroundService aquí: re-emite la notificación por
+      // defecto del plugin (icono hoja de Flutter) junto a la nuestra → doble
+      // icono. El servicio YA está en foreground (config.isForeground=true, solo
+      // se degrada al parar), así que es redundante.
       // M7: la causa acompaña al evento; sin ella la UI mostraba SIEMPRE "caída"
       // aunque la alarma fuese por inactividad.
       service.invoke("onAlarmTriggered", {"cause": cause});
