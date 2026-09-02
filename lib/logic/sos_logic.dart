@@ -474,6 +474,15 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
 
     final rawPrefs = await SharedPreferences.getInstance();
 
+    // M1 (lado UI): restaurar una pausa en curso tras un respawn. Sylvia ya la
+    // restaura por su lado (paused_until en prefs), pero la UI tenía su
+    // _pausedUntil solo en memoria → al reabrir mostraba "activo" mientras el
+    // servicio seguía pausado (engañoso). Releerla aquí alinea la UI con Sylvia.
+    final int pausedUntilMs = rawPrefs.getInt('paused_until') ?? 0;
+    if (pausedUntilMs > DateTime.now().millisecondsSinceEpoch) {
+      _pausedUntil = DateTime.fromMillisecondsSinceEpoch(pausedUntilMs);
+    }
+
     // Check if inactivity AlarmClock fired during Doze (screen was off, Timer was frozen)
     final int scheduledFor = rawPrefs.getInt('inactivity_alarm_scheduled_for') ?? 0;
     final bool inactivityWasEnabled = rawPrefs.getBool('inactivity_monitor_enabled') ?? false;
