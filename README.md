@@ -52,7 +52,7 @@ The interface is designed for high-stress situations. High contrast, large touch
 
 ## ✉️ What's New in v4.3.1: our own SMS engine + map links that open natively
 
-v4.3.1 builds on the v4.3.0 fix with Oksigenia's own FOSS SMS engine (`oksigenia_sms`): the emergency SMS now goes out as a **single concatenated message** — instead of several separate fragments — still **without ever requesting `READ_PHONE_STATE`**, and now with a real send confirmation from the radio. If anything fails it falls back automatically to the v4.3.0 per-part split, so the worst case is exactly what already worked. Location links were also reworked around our largest user base — de-Googled phones: every message now leads with a `geo:` link that opens the map app actually **installed on the recipient's device** (Google Maps, OrganicMaps, OsmAnd…), with Google Maps and OpenStreetMap `https` links as universal fallbacks — so a position opens in a native map even on a phone with no Google services. The emergency text is leaner too: your note sits right under the header and the critical messages stay GSM-7 (no emojis) for fewer segments and better delivery in poor coverage. Also fixed a UI reminder that could stay stuck over the on-screen toggles. Validated on device (Pixel 8 / GrapheneOS); no new permissions (only `SEND_SMS`), same signing key, updates cleanly.
+v4.3.1 builds on the v4.3.0 fix with Oksigenia's own FOSS SMS engine ([`oksigenia_sms`](packages/oksigenia_sms)): the emergency SMS now goes out as a **single concatenated message** — instead of several separate fragments — still **without ever requesting `READ_PHONE_STATE`**, and now with a real send confirmation from the radio. If anything fails it falls back automatically to the v4.3.0 per-part split, so the worst case is exactly what already worked. Location links were also reworked around our largest user base — de-Googled phones: every message now leads with a `geo:` link that opens the map app actually **installed on the recipient's device** (Google Maps, OrganicMaps, OsmAnd…), with Google Maps and OpenStreetMap `https` links as universal fallbacks — so a position opens in a native map even on a phone with no Google services. The emergency text is leaner too: your note sits right under the header and the critical messages stay GSM-7 (no emojis) for fewer segments and better delivery in poor coverage. Also fixed a UI reminder that could stay stuck over the on-screen toggles. Validated on device (Pixel 8 / GrapheneOS); no new permissions (only `SEND_SMS`), same signing key, updates cleanly.
 
 ---
 
@@ -352,6 +352,15 @@ flutter pub get
 # Note: You need your own key.properties for release builds
 flutter build apk --release --split-per-abi
 ```
+
+### 📦 Reusable module: `oksigenia_sms`
+
+The permission-minimal SMS engine that powers the SOS lives in
+**[`packages/oksigenia_sms`](packages/oksigenia_sms)** — a standalone, Apache-2.0
+Flutter plugin that sends a single concatenated Android SMS using only
+`SEND_SMS` (no `READ_PHONE_STATE`), working on Android 12–17 and GrapheneOS.
+It is designed to be reused in any Flutter app; a standalone repository and
+pub.dev release are planned.
 
 ---
 
