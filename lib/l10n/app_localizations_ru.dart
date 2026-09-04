@@ -399,14 +399,14 @@ class AppLocalizationsRu extends AppLocalizations {
   String get btnRestartSystem => 'ПЕРЕЗАПУСТИТЬ';
 
   @override
-  String get smsDyingGasp => '⚠️ БАТАРЕЯ <5%. Система выключается. Лок:';
+  String get smsDyingGasp => 'БАТАРЕЯ <5%. Система выключается. Лок:';
 
   @override
   String get smsHelpMessage => 'ПОМОГИТЕ! Нужна помощь.';
 
   @override
   String get smsBeaconHeader =>
-      '📍 OKSIGENIA SOS — автоматическое продолжение моего сигнала тревоги (это НЕ новая тревога). Моё текущее местоположение:';
+      'OKSIGENIA SOS - обновление (это НЕ новая тревога):';
 
   @override
   String get batteryDialogTitle => 'Ограничение батареи';
@@ -710,7 +710,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeActionApply => 'Применить';
 
   @override
-  String get smsBeaconDistance => 'от точки, где был отправлен сигнал SOS.';
+  String get smsBeaconDistance => 'от точки SOS.';
 
   @override
   String get homeBeaconBanner =>

@@ -123,9 +123,9 @@
     "statusMonitorStopped": "Surveillance arrêtée.",
     "statusScreenSleep": "Extinction de l'écran...",
     "btnRestartSystem": "REDÉMARRER SYSTÈME",
-    "smsDyingGasp": "⚠️ BATTERIE <5%. Arrêt système. Loc:",
+    "smsDyingGasp": "BATTERIE <5%. Extinction. Loc:",
     "smsHelpMessage": "À L'AIDE ! J'ai besoin d'assistance.",
-    "smsBeaconHeader": "📍 OKSIGENIA SOS — suivi automatique de mon alerte d'urgence (ceci n'est PAS une nouvelle alarme). Ma position actualisée :",
+    "smsBeaconHeader": "OKSIGENIA SOS - suivi (PAS une nouvelle alarme):",
     "batteryDialogTitle": "Restriction Batterie",
     "btnDisableBatterySaver": "DÉSACTIVER ÉCO",
     "batteryDialogBody": "Le système restreint la batterie de cette application. Pour que le SOS fonctionne en arrière-plan, vous devez sélectionner « Non restreint » ou « Ne pas optimiser ».",
@@ -214,7 +214,7 @@
     "homeConfirmValueOff": "OFF",
     "homeProfileNoFallWarning": "Ce profil NE détecte PAS les chutes. Le SOS doit être déclenché manuellement.",
     "homeActionApply": "Appliquer",
-    "smsBeaconDistance": "depuis le point où le SOS a été envoyé.",
+    "smsBeaconDistance": "du point du SOS.",
     "homeBeaconBanner": "Envoi de votre position au contact après le SOS — touchez pour arrêter",
     "beaconStopped": "Alertes de mouvement arrêtées"
 }

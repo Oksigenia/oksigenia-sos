@@ -402,14 +402,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get btnRestartSystem => 'SYSTEEM HERSTARTEN';
 
   @override
-  String get smsDyingGasp => '⚠️ BATTERIJ <5%. Systeem sluit af. Loc:';
+  String get smsDyingGasp => 'BATTERIJ <5%. Systeem sluit af. Loc:';
 
   @override
   String get smsHelpMessage => 'HELP! Ik heb dringend hulp nodig.';
 
   @override
-  String get smsBeaconHeader =>
-      '📍 OKSIGENIA SOS — automatische opvolging van mijn noodoproep (dit is GEEN nieuw alarm). Mijn bijgewerkte locatie:';
+  String get smsBeaconHeader => 'OKSIGENIA SOS - update (GEEN nieuw alarm):';
 
   @override
   String get batteryDialogTitle => 'Batterij Beperking';
@@ -713,7 +712,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get homeActionApply => 'Toepassen';
 
   @override
-  String get smsBeaconDistance => 'vanaf het punt waar de SOS is verzonden.';
+  String get smsBeaconDistance => 'vanaf het SOS-punt.';
 
   @override
   String get homeBeaconBanner =>

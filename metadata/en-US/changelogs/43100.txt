@@ -1,0 +1,7 @@
+v4.3.1 — Own SMS engine (single concatenated message) + map links for de-Googled phones
+
+- Emergency SMS is now sent as one concatenated message by Oksigenia's own SMS engine — still without requesting READ_PHONE_STATE — with real send confirmation, and an automatic fallback to the v4.3.0 per-part split if anything fails.
+- Location links reworked: every message leads with a geo: link that opens the map app installed on the recipient's phone (Google Maps, OrganicMaps, OsmAnd...), with Google Maps and OpenStreetMap https links as fallbacks — so your position opens natively even on phones without Google services.
+- Cleaner, leaner emergency text: your note sits right under the header; critical messages stay GSM-7 (no emojis) for fewer segments and better delivery in poor coverage; follow-up and low-battery messages reworded.
+- Fixed: the "keep the app running" reminder no longer stays stuck over the on-screen toggles.
+- Same signing key, no new permissions (only SEND_SMS), updates cleanly over any previous install.

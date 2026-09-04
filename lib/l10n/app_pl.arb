@@ -123,9 +123,9 @@
     "statusMonitorStopped": "Monitor zatrzymany.",
     "statusScreenSleep": "Ekran wkrótce zgaśnie.",
     "btnRestartSystem": "ZRESTARTUJ SYSTEM",
-    "smsDyingGasp": "⚠️ BATERIA <5%. System się wyłącza. Lok:",
+    "smsDyingGasp": "BATERIA <5%. System się wyłącza. Lok:",
     "smsHelpMessage": "POMOCY! Potrzebuję wsparcia.",
-    "smsBeaconHeader": "📍 OKSIGENIA SOS — automatyczna aktualizacja mojego alarmu awaryjnego (to NIE jest nowy alarm). Moja zaktualizowana lokalizacja:",
+    "smsBeaconHeader": "OKSIGENIA SOS - aktualizacja (to NIE nowy alarm):",
     "batteryDialogTitle": "Ograniczenie baterii",
     "btnDisableBatterySaver": "WYŁĄCZ OSZCZĘDZANIE",
     "batteryDialogBody": "System ogranicza baterię tej aplikacji. Aby SOS działało w tle, wybierz „Bez ograniczeń” lub „Nie optymalizuj”.",
@@ -214,7 +214,7 @@
     "homeConfirmValueOff": "WYŁ",
     "homeProfileNoFallWarning": "Ten profil NIE wykrywa upadków. SOS musi być uruchomiony ręcznie.",
     "homeActionApply": "Zastosuj",
-    "smsBeaconDistance": "od miejsca, w którym wysłano SOS.",
+    "smsBeaconDistance": "od punktu SOS.",
     "homeBeaconBanner": "Wysyłanie lokalizacji do kontaktu po SOS — dotknij, aby zatrzymać",
     "beaconStopped": "Powiadomienia o ruchu zatrzymane"
 }

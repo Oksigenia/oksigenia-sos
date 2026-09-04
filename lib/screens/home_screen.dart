@@ -1555,12 +1555,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ti
   }
 
   void _showKeepAliveWarning(BuildContext context, AppLocalizations l10n) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    // El auto-cierre interno del SnackBar solo arranca al terminar su animación
+    // de entrada; los rebuilds continuos de la telemetría (GPS/batería) lo
+    // interrumpen y el temporizador de 6s nunca se arma → el banner se queda
+    // pegado tapando los toggles. Lo cerramos con un Timer propio (reloj de
+    // pared), inmune a los rebuilds, y damos al SnackBar duración larga para que
+    // su timer frágil no compita. Ver deuda técnica B3 (throttle notifyListeners).
+    final controller = messenger.showSnackBar(SnackBar(
         content: Text(l10n.warningKeepAlive, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.orange[900], behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        margin: const EdgeInsets.all(16), duration: const Duration(seconds: 6),
-        action: SnackBarAction(label: "OK", textColor: Colors.white, onPressed: () { ScaffoldMessenger.of(context).clearSnackBars(); })));
+        margin: const EdgeInsets.all(16), duration: const Duration(days: 1),
+        action: SnackBarAction(label: "OK", textColor: Colors.white, onPressed: () { messenger.clearSnackBars(); })));
+    Timer(const Duration(seconds: 12), () { controller.close(); });
   }
 }
 

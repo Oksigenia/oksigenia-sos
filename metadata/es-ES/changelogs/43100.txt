@@ -1,0 +1,7 @@
+v4.3.1 — Motor de SMS propio (un mensaje concatenado) + enlaces de mapa para móviles sin Google
+
+- El SMS de emergencia ahora se envía como un único mensaje concatenado con el motor de SMS propio de Oksigenia —sigue sin pedir READ_PHONE_STATE—, con confirmación real de envío y con vuelta automática al troceo por partes de v4.3.0 si algo falla.
+- Enlaces de ubicación rehechos: cada mensaje empieza por un enlace geo: que abre la app de mapas instalada en el teléfono que recibe (Google Maps, OrganicMaps, OsmAnd...), con Google Maps y OpenStreetMap por https como respaldo —así tu posición abre en la app nativa incluso en móviles sin servicios de Google.
+- Texto de emergencia más limpio y ligero: tu nota va justo bajo la cabecera; los mensajes críticos se mantienen en GSM-7 (sin emojis) para menos segmentos y mejor entrega con mala cobertura; se reescriben el seguimiento y el aviso de batería baja.
+- Corregido: el aviso de "no cierres la app" ya no se queda pegado tapando los interruptores en pantalla.
+- Misma firma, sin permisos nuevos (solo SEND_SMS), actualiza sin problemas sobre cualquier instalación previa.

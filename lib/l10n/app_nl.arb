@@ -123,9 +123,9 @@
     "statusMonitorStopped": "Monitor gestopt.",
     "statusScreenSleep": "Scherm gaat uit...",
     "btnRestartSystem": "SYSTEEM HERSTARTEN",
-    "smsDyingGasp": "⚠️ BATTERIJ <5%. Systeem sluit af. Loc:",
+    "smsDyingGasp": "BATTERIJ <5%. Systeem sluit af. Loc:",
     "smsHelpMessage": "HELP! Ik heb dringend hulp nodig.",
-    "smsBeaconHeader": "📍 OKSIGENIA SOS — automatische opvolging van mijn noodoproep (dit is GEEN nieuw alarm). Mijn bijgewerkte locatie:",
+    "smsBeaconHeader": "OKSIGENIA SOS - update (GEEN nieuw alarm):",
     "batteryDialogTitle": "Batterij Beperking",
     "btnDisableBatterySaver": "BESPARING UIT",
     "batteryDialogBody": "Het systeem beperkt de batterij. Om SOS op de achtergrond te laten werken, selecteer 'Onbeperkt' of 'Niet optimaliseren'.",
@@ -214,7 +214,7 @@
     "homeConfirmValueOff": "UIT",
     "homeProfileNoFallWarning": "Dit profiel detecteert GEEN vallen. SOS moet handmatig worden geactiveerd.",
     "homeActionApply": "Toepassen",
-    "smsBeaconDistance": "vanaf het punt waar de SOS is verzonden.",
+    "smsBeaconDistance": "vanaf het SOS-punt.",
     "homeBeaconBanner": "Locatie-updates naar je contact na de SOS — tik om te stoppen",
     "beaconStopped": "Bewegingsmeldingen gestopt"
 }

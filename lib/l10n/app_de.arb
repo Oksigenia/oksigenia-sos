@@ -123,9 +123,9 @@
     "statusMonitorStopped": "Überwachung gestoppt.",
     "statusScreenSleep": "Bildschirm schaltet ab...",
     "btnRestartSystem": "SYSTEM NEUSTARTEN",
-    "smsDyingGasp": "⚠️ AKKU <5%. System schaltet ab. Standort:",
+    "smsDyingGasp": "AKKU <5%. System schaltet ab. Standort:",
     "smsHelpMessage": "HILFE! Ich brauche dringend Unterstützung.",
-    "smsBeaconHeader": "📍 OKSIGENIA SOS — automatische Folgemeldung zu meinem Notruf (dies ist KEIN neuer Alarm). Mein aktueller Standort:",
+    "smsBeaconHeader": "OKSIGENIA SOS - Folgemeldung (KEIN neuer Alarm):",
     "batteryDialogTitle": "Akku-Einschränkung",
     "btnDisableBatterySaver": "SPARMODUS AUS",
     "batteryDialogBody": "Das System schränkt den Akku ein. Damit SOS im Hintergrund läuft, wählen Sie 'Keine Einschränkung' oder 'Nicht optimieren'.",
@@ -214,7 +214,7 @@
     "homeConfirmValueOff": "AUS",
     "homeProfileNoFallWarning": "Dieses Profil erkennt KEINE Stürze. SOS muss manuell ausgelöst werden.",
     "homeActionApply": "Anwenden",
-    "smsBeaconDistance": "vom Punkt, an dem der SOS gesendet wurde.",
+    "smsBeaconDistance": "vom SOS-Punkt entfernt.",
     "homeBeaconBanner": "Standort-Updates an deinen Kontakt nach dem SOS — zum Stoppen tippen",
     "beaconStopped": "Bewegungsmeldungen gestoppt"
 }

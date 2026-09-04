@@ -123,9 +123,9 @@
     "statusMonitorStopped": "Monitor stopped.",
     "statusScreenSleep": "Screen sleeping soon.",
     "btnRestartSystem": "RESTART SYSTEM",
-    "smsDyingGasp": "⚠️ BATTERY <5%. System shutting down. Loc:",
+    "smsDyingGasp": "BATTERY <5%. System shutting down. Loc:",
     "smsHelpMessage": "HELP! I need assistance.",
-    "smsBeaconHeader": "📍 OKSIGENIA SOS — automatic follow-up to my emergency alert (this is NOT a new alarm). My updated location:",
+    "smsBeaconHeader": "OKSIGENIA SOS - follow-up (NOT a new alarm):",
     "batteryDialogTitle": "Battery Restriction",
     "btnDisableBatterySaver": "DISABLE SAVER",
     "batteryDialogBody": "The system is restricting this app's battery. For SOS to work in the background, you must select 'Unrestricted' or 'Don't Optimize'.",
@@ -241,7 +241,7 @@
     "homeConfirmValueOff": "OFF",
     "homeProfileNoFallWarning": "This profile does NOT detect falls. SOS must be triggered manually.",
     "homeActionApply": "Apply",
-    "smsBeaconDistance": "from the point where the SOS was sent.",
+    "smsBeaconDistance": "from the SOS point.",
     "homeBeaconBanner": "Sending location updates to your contact after the SOS — tap to stop",
     "beaconStopped": "Movement alerts stopped"
 }

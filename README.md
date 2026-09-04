@@ -1,4 +1,4 @@
-# Oksigenia SOS 🏔️ v4.3.0 "Running"
+# Oksigenia SOS 🏔️ v4.3.1 "Running"
 
 **The Ultimate Outdoor Guardian | FOSS | Privacy-First | Autonomous**
 
@@ -47,6 +47,12 @@ The interface is designed for high-stress situations. High contrast, large touch
 |:---:|:---:|
 | <img src="screenshots/main_testmode_en.jpg" width="180" /> | <img src="screenshots/lang_en.jpg" width="180" /> |
 | *Safe testing environment* | *11 native languages* |
+
+---
+
+## ✉️ What's New in v4.3.1: our own SMS engine + map links that open natively
+
+v4.3.1 builds on the v4.3.0 fix with Oksigenia's own FOSS SMS engine (`oksigenia_sms`): the emergency SMS now goes out as a **single concatenated message** — instead of several separate fragments — still **without ever requesting `READ_PHONE_STATE`**, and now with a real send confirmation from the radio. If anything fails it falls back automatically to the v4.3.0 per-part split, so the worst case is exactly what already worked. Location links were also reworked around our largest user base — de-Googled phones: every message now leads with a `geo:` link that opens the map app actually **installed on the recipient's device** (Google Maps, OrganicMaps, OsmAnd…), with Google Maps and OpenStreetMap `https` links as universal fallbacks — so a position opens in a native map even on a phone with no Google services. The emergency text is leaner too: your note sits right under the header and the critical messages stay GSM-7 (no emojis) for fewer segments and better delivery in poor coverage. Also fixed a UI reminder that could stay stuck over the on-screen toggles. Validated on device (Pixel 8 / GrapheneOS); no new permissions (only `SEND_SMS`), same signing key, updates cleanly.
 
 ---
 
