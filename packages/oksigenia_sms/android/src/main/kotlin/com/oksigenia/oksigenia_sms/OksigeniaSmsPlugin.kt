@@ -1,3 +1,6 @@
+// Copyright 2026 Oksigenia
+// SPDX-License-Identifier: Apache-2.0
+
 package com.oksigenia.oksigenia_sms
 
 import android.annotation.SuppressLint
