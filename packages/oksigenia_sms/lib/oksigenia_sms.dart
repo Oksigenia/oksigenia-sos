@@ -1,4 +1,4 @@
-// Copyright 2026 Oksigenia
+// Copyright 2026 Oksigenia SL
 // SPDX-License-Identifier: Apache-2.0
 
 import 'dart:async';
