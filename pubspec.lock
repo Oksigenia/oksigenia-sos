@@ -569,9 +569,11 @@ packages:
   oksigenia_sms:
     dependency: "direct main"
     description:
-      path: "packages/oksigenia_sms"
-      relative: true
-    source: path
+      path: "."
+      ref: c1091ee58ade9abe05afc936b6de88167bb7620e
+      resolved-ref: c1091ee58ade9abe05afc936b6de88167bb7620e
+      url: "https://github.com/OksigeniaSL/oksigenia_sms.git"
+    source: git
     version: "0.1.0"
   package_config:
     dependency: transitive

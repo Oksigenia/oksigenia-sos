@@ -20,8 +20,10 @@ dependencies:
   permission_handler: ^12.0.1
   wakelock_plus: ^1.2.8
   another_telephony: ^0.4.1  # 🟢 BACKGROUND SMS — fork activo de telephony (discontinuado). Si falla, evaluar sms_sender.
-  oksigenia_sms:             # 🟢 envío propio: SMS concatenado sin READ_PHONE_STATE (Android 17/GrapheneOS). Ver packages/.
-    path: packages/oksigenia_sms
+  oksigenia_sms:             # 🟢 envío propio: SMS concatenado sin READ_PHONE_STATE (Android 17/GrapheneOS). Repo propio, commit pineado para RB.
+    git:
+      url: https://github.com/OksigeniaSL/oksigenia_sms.git
+      ref: c1091ee58ade9abe05afc936b6de88167bb7620e
   
   # Sensors & Audio
   sensors_plus: ^7.0.0       
