@@ -123,9 +123,9 @@
     "statusMonitorStopped": "Монитор остановлен.",
     "statusScreenSleep": "Экран скоро погаснет.",
     "btnRestartSystem": "ПЕРЕЗАПУСТИТЬ",
-    "smsDyingGasp": "⚠️ БАТАРЕЯ <5%. Система выключается. Лок:",
+    "smsDyingGasp": "БАТАРЕЯ <5%. Система выключается. Лок:",
     "smsHelpMessage": "ПОМОГИТЕ! Нужна помощь.",
-    "smsBeaconHeader": "📍 OKSIGENIA SOS — автоматическое продолжение моего сигнала тревоги (это НЕ новая тревога). Моё текущее местоположение:",
+    "smsBeaconHeader": "OKSIGENIA SOS - обновление (это НЕ новая тревога):",
     "batteryDialogTitle": "Ограничение батареи",
     "btnDisableBatterySaver": "ОТКЛЮЧИТЬ ЭКОНОМИЮ",
     "batteryDialogBody": "Система ограничивает батарею этого приложения. Чтобы SOS работал в фоне, выбери «Без ограничений» или «Не оптимизировать».",
@@ -214,7 +214,7 @@
     "homeConfirmValueOff": "ВЫКЛ",
     "homeProfileNoFallWarning": "Этот профиль НЕ обнаруживает падения. SOS должен быть активирован вручную.",
     "homeActionApply": "Применить",
-    "smsBeaconDistance": "от точки, где был отправлен сигнал SOS.",
+    "smsBeaconDistance": "от точки SOS.",
     "homeBeaconBanner": "Отправка местоположения контакту после SOS — нажмите, чтобы остановить",
     "beaconStopped": "Оповещения о перемещении остановлены"
 }

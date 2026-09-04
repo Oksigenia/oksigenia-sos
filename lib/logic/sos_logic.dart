@@ -15,10 +15,12 @@ import 'package:battery_plus/battery_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:oksigenia_sos/l10n/app_localizations.dart'; 
 import 'package:another_telephony/telephony.dart';
+import 'package:oksigenia_sms/oksigenia_sms.dart';
 import 'activity_profile.dart';
 import '../services/preferences_service.dart';
 import '../utils/phone_utils.dart';
 import '../utils/sms_splitter.dart';
+import '../utils/geo_links.dart';
 import '../screens/settings_screen.dart';  
 import '../screens/alarm_screen.dart';
 import '../screens/sent_screen.dart';
@@ -967,6 +969,22 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
   // Troceo sin partir enlaces (sms_splitter). Devuelve true si salió al menos la
   // primera pieza (la crítica: SOS + coordenadas).
   Future<bool> _sendSmsChunked(String to, String message) async {
+    // Fase 2 (#12): primario = plugin propio (1 SMS concatenado, sin permiso
+    // extra, con resultCode); fallback al troceo de la Fase 1 si el plugin falla.
+    try {
+      final r = await OksigeniaSms.send(to: to, message: message);
+      if (r.status == OksigeniaSmsStatus.failed) {
+        _logSmsDiag("UI SMS: plugin falló (${r.error}) → fallback a troceo");
+        return _sendSplitFallbackUi(to, message);
+      }
+      return true; // sent | unknown (entregado; ver EXP5)
+    } catch (e) {
+      _logSmsDiag("UI SMS: excepción del plugin ($e) → fallback a troceo");
+      return _sendSplitFallbackUi(to, message);
+    }
+  }
+
+  Future<bool> _sendSplitFallbackUi(String to, String message) async {
     final parts = splitSmsSafely(message);
     int ok = 0;
     for (final part in parts) {
@@ -979,7 +997,7 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       }
     }
     if (ok < parts.length) {
-      _logSmsDiag("UI SMS: enviadas $ok/${parts.length} piezas");
+      _logSmsDiag("UI SMS: fallback envió $ok/${parts.length} piezas");
     }
     return ok > 0;
   }
@@ -1001,13 +1019,13 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     final t = await AppLocalizations.delegate.load(Locale(langCode));
 
     String msg = t.smsDyingGasp;
-    if (msg.isEmpty) msg = "⚠️ BATT <5%. Bye. Loc:";
+    if (msg.isEmpty) msg = "BATT <5%. Bye. Loc:";
 
     try {
       Position pos = await Geolocator.getCurrentPosition(timeLimit: const Duration(seconds: 5))
         .catchError((_) async => await Geolocator.getLastKnownPosition() ?? Position(longitude: 0, latitude: 0, timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, altitudeAccuracy: 0, headingAccuracy: 0));
 
-      msg += "\nhttps://maps.google.com/?q=${pos.latitude.toStringAsFixed(6)},${pos.longitude.toStringAsFixed(6)}";
+      msg += "\n${geoLinks(pos.latitude, pos.longitude)}";
 
       int sent = 0;
       for (String number in recipients) {
@@ -1194,10 +1212,10 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
       }
       if (sosPos != null) {
         _setStatus(SOSStatus.locationFixed);
-        // Crítico primero: Maps con coordenadas justo tras la cabecera.
-        msgBody += "\nMaps: https://maps.google.com/?q=${sosPos.latitude.toStringAsFixed(6)},${sosPos.longitude.toStringAsFixed(6)}";
+        // La nota del usuario justo bajo la cabecera (se lee primero); después
+        // el bloque de ubicación (geo: + Google + OSM) y la línea técnica.
         msgBody += "\n$note";
-        msgBody += "\nOSM: https://www.openstreetmap.org/?mlat=${sosPos.latitude.toStringAsFixed(6)}&mlon=${sosPos.longitude.toStringAsFixed(6)}";
+        msgBody += "\n${geoLinks(sosPos.latitude, sosPos.longitude)}";
         msgBody += "\nBat: $batteryLevel% | Alt: ${sosPos.altitude.toStringAsFixed(0)}m | Acc: ${sosPos.accuracy.toStringAsFixed(0)}m";
       } else {
         msgBody += "\n$note";
@@ -1273,9 +1291,8 @@ class SOSLogic extends ChangeNotifier with WidgetsBindingObserver {
     _periodicUpdateTimer = Timer.periodic(Duration(minutes: minutes), (timer) async {
       try {
         Position pos = await Geolocator.getCurrentPosition(timeLimit: const Duration(seconds: 20));
-        String updateMsg = "📍 SEGUIMIENTO Oksigenia: Sigo en ruta / Still moving.";
-        updateMsg += "\nMaps: https://maps.google.com/?q=${pos.latitude.toStringAsFixed(6)},${pos.longitude.toStringAsFixed(6)}";
-        updateMsg += "\nOSM: https://www.openstreetmap.org/?mlat=${pos.latitude.toStringAsFixed(6)}&mlon=${pos.longitude.toStringAsFixed(6)}";
+        String updateMsg = "SEGUIMIENTO Oksigenia: sigo en ruta / still moving.";
+        updateMsg += "\n${geoLinks(pos.latitude, pos.longitude)}";
         await _sendSmsChunked(target, updateMsg);
       } catch (e) {}
     });

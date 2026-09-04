@@ -566,6 +566,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.3.0"
+  oksigenia_sms:
+    dependency: "direct main"
+    description:
+      path: "packages/oksigenia_sms"
+      relative: true
+    source: path
+    version: "0.1.0"
   package_config:
     dependency: transitive
     description:

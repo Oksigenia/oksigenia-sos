@@ -863,7 +863,7 @@ abstract class AppLocalizations {
   /// No description provided for @smsDyingGasp.
   ///
   /// In en, this message translates to:
-  /// **'⚠️ BATTERY <5%. System shutting down. Loc:'**
+  /// **'BATTERY <5%. System shutting down. Loc:'**
   String get smsDyingGasp;
 
   /// No description provided for @smsHelpMessage.
@@ -875,7 +875,7 @@ abstract class AppLocalizations {
   /// No description provided for @smsBeaconHeader.
   ///
   /// In en, this message translates to:
-  /// **'📍 OKSIGENIA SOS — automatic follow-up to my emergency alert (this is NOT a new alarm). My updated location:'**
+  /// **'OKSIGENIA SOS - follow-up (NOT a new alarm):'**
   String get smsBeaconHeader;
 
   /// No description provided for @batteryDialogTitle.
@@ -1409,7 +1409,7 @@ abstract class AppLocalizations {
   /// No description provided for @smsBeaconDistance.
   ///
   /// In en, this message translates to:
-  /// **'from the point where the SOS was sent.'**
+  /// **'from the SOS point.'**
   String get smsBeaconDistance;
 
   /// No description provided for @homeBeaconBanner.

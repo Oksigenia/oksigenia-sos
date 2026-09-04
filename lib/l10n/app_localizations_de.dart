@@ -395,14 +395,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get btnRestartSystem => 'SYSTEM NEUSTARTEN';
 
   @override
-  String get smsDyingGasp => '⚠️ AKKU <5%. System schaltet ab. Standort:';
+  String get smsDyingGasp => 'AKKU <5%. System schaltet ab. Standort:';
 
   @override
   String get smsHelpMessage => 'HILFE! Ich brauche dringend Unterstützung.';
 
   @override
   String get smsBeaconHeader =>
-      '📍 OKSIGENIA SOS — automatische Folgemeldung zu meinem Notruf (dies ist KEIN neuer Alarm). Mein aktueller Standort:';
+      'OKSIGENIA SOS - Folgemeldung (KEIN neuer Alarm):';
 
   @override
   String get batteryDialogTitle => 'Akku-Einschränkung';
@@ -706,7 +706,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homeActionApply => 'Anwenden';
 
   @override
-  String get smsBeaconDistance => 'vom Punkt, an dem der SOS gesendet wurde.';
+  String get smsBeaconDistance => 'vom SOS-Punkt entfernt.';
 
   @override
   String get homeBeaconBanner =>

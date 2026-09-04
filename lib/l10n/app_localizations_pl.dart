@@ -398,14 +398,14 @@ class AppLocalizationsPl extends AppLocalizations {
   String get btnRestartSystem => 'ZRESTARTUJ SYSTEM';
 
   @override
-  String get smsDyingGasp => '⚠️ BATERIA <5%. System się wyłącza. Lok:';
+  String get smsDyingGasp => 'BATERIA <5%. System się wyłącza. Lok:';
 
   @override
   String get smsHelpMessage => 'POMOCY! Potrzebuję wsparcia.';
 
   @override
   String get smsBeaconHeader =>
-      '📍 OKSIGENIA SOS — automatyczna aktualizacja mojego alarmu awaryjnego (to NIE jest nowy alarm). Moja zaktualizowana lokalizacja:';
+      'OKSIGENIA SOS - aktualizacja (to NIE nowy alarm):';
 
   @override
   String get batteryDialogTitle => 'Ograniczenie baterii';
@@ -709,7 +709,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get homeActionApply => 'Zastosuj';
 
   @override
-  String get smsBeaconDistance => 'od miejsca, w którym wysłano SOS.';
+  String get smsBeaconDistance => 'od punktu SOS.';
 
   @override
   String get homeBeaconBanner =>

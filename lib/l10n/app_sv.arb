@@ -123,9 +123,9 @@
     "statusMonitorStopped": "Övervakning stoppad.",
     "statusScreenSleep": "Skärmen släcks snart...",
     "btnRestartSystem": "STARTA OM SYSTEMET",
-    "smsDyingGasp": "⚠️ BATTERI <5%. Systemet stängs av. Plats:",
+    "smsDyingGasp": "BATTERI <5%. Systemet stängs av. Plats:",
     "smsHelpMessage": "HJÄLP! Jag behöver assistans.",
-    "smsBeaconHeader": "📍 OKSIGENIA SOS — automatisk uppföljning av mitt nödlarm (detta är INTE ett nytt larm). Min uppdaterade plats:",
+    "smsBeaconHeader": "OKSIGENIA SOS - uppföljning (INTE ett nytt larm):",
     "batteryDialogTitle": "Batteribegränsning",
     "btnDisableBatterySaver": "INAKTIVERA SPARLÄGE",
     "batteryDialogBody": "Systemet begränsar batteriet. För att SOS ska fungera i bakgrunden, välj 'Ingen begränsning' eller 'Optimera inte'.",
@@ -214,7 +214,7 @@
     "homeConfirmValueOff": "AV",
     "homeProfileNoFallWarning": "Denna profil upptäcker INTE fall. SOS måste utlösas manuellt.",
     "homeActionApply": "Tillämpa",
-    "smsBeaconDistance": "från platsen där SOS skickades.",
+    "smsBeaconDistance": "från SOS-punkten.",
     "homeBeaconBanner": "Skickar platsuppdateringar till din kontakt efter SOS — tryck för att stoppa",
     "beaconStopped": "Rörelseaviseringar stoppade"
 }

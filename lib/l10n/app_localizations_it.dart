@@ -405,14 +405,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get btnRestartSystem => 'RIAVVIA SISTEMA';
 
   @override
-  String get smsDyingGasp => '⚠️ BATTERIA <5%. Sistema in arresto. Pos:';
+  String get smsDyingGasp => 'BATTERIA <5%. Sistema in arresto. Pos:';
 
   @override
   String get smsHelpMessage => 'AIUTO! Ho bisogno di assistenza urgente.';
 
   @override
   String get smsBeaconHeader =>
-      '📍 OKSIGENIA SOS — aggiornamento automatico del mio allarme di emergenza (questo NON è un nuovo allarme). La mia posizione aggiornata:';
+      'OKSIGENIA SOS - aggiornamento (NON è un nuovo allarme):';
 
   @override
   String get batteryDialogTitle => 'Restrizione Batteria';
@@ -716,7 +716,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get homeActionApply => 'Applica';
 
   @override
-  String get smsBeaconDistance => 'dal punto in cui è stato inviato l\'SOS.';
+  String get smsBeaconDistance => 'dal punto del SOS.';
 
   @override
   String get homeBeaconBanner =>

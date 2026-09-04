@@ -17,6 +17,8 @@ import 'package:path_provider/path_provider.dart';
 import '../logic/activity_profile.dart';
 import '../utils/phone_utils.dart';
 import '../utils/sms_splitter.dart';
+import 'package:oksigenia_sms/oksigenia_sms.dart';
+import '../utils/geo_links.dart';
 import 'preferences_service.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -465,6 +467,27 @@ void onStart(ServiceInstance service) async {
     }
   }
 
+  // Fallback Fase 1: varios SMS con sendTextMessage (isMultipart:false) por
+  // pieza (sms_splitter, sin partir enlaces). La vía validada en v4.3.0.
+  // Declarada ANTES de _sendSmsTracked: las funciones locales de onStart no se
+  // hoisted.
+  Future<bool> _sendSplitFallback(String to, String message) async {
+    final parts = splitSmsSafely(message);
+    int ok = 0;
+    for (final part in parts) {
+      try {
+        await _telephony.sendSms(to: to, message: part, isMultipart: false);
+        ok++;
+      } catch (e) {
+        _logSentinel("SYLVIA SMS: ❌ fallback pieza ${ok + 1}/${parts.length} a $to: $e");
+      }
+    }
+    if (ok < parts.length) {
+      _logSentinel("SYLVIA SMS: ⚠️ fallback envió $ok/${parts.length} piezas a $to");
+    }
+    return ok > 0;
+  }
+
   // Envía un SMS y ADEMÁS registra en el log si el radio llega a confirmarlo.
   // Devuelve true si se entregó a SmsManager sin excepción (misma semántica que
   // antes: "encolado"). OJO — techo conocido del plugin: su BroadcastReceiver
@@ -474,25 +497,23 @@ void onStart(ServiceInstance service) async {
   // confirmación. El listener del plugin es un campo compartido, por eso los
   // envíos SIEMPRE deben ser secuenciales (nunca en paralelo).
   Future<bool> _sendSmsTracked(String to, String message) async {
-    // issue #12: la vía multipart (sendMultipartTextMessage → divideMessage)
-    // lanza SecurityException getGroupIdLevel1 (READ_PHONE_STATE) en Android
-    // 17/GrapheneOS. Troceamos NOSOTROS (sms_splitter, sin partir enlaces) y
-    // enviamos cada pieza con isMultipart:false → sendTextMessage, que NO toca
-    // ese permiso. Devuelve true si al menos la primera pieza (la crítica) salió.
-    final parts = splitSmsSafely(message);
-    int ok = 0;
-    for (final part in parts) {
-      try {
-        await _telephony.sendSms(to: to, message: part, isMultipart: false);
-        ok++;
-      } catch (e) {
-        _logSentinel("SYLVIA SMS: ❌ excepción al enviar pieza ${ok + 1}/${parts.length} a $to: $e");
+    // Fase 2 (#12): primario = plugin propio → UN SMS concatenado, sin
+    // READ_PHONE_STATE, con resultCode. Si el plugin FALLA (excepción o código
+    // de error), fallback al troceo de la Fase 1 (varios SMS, ya validado en
+    // v4.3.0). 'unknown' = entregado sin acuse dentro del timeout (ver EXP5) →
+    // se cuenta como enviado, sin re-enviar (evita SMS duplicados).
+    try {
+      final r = await OksigeniaSms.send(to: to, message: message);
+      if (r.status == OksigeniaSmsStatus.failed) {
+        _logSentinel("SYLVIA SMS: ⚠️ plugin falló (${r.error}) → fallback a troceo");
+        return _sendSplitFallback(to, message);
       }
+      _logSentinel("SYLVIA SMS: 📶 ${r.status.name} (${r.okParts}/${r.parts}) a $to");
+      return true;
+    } catch (e) {
+      _logSentinel("SYLVIA SMS: ❌ excepción del plugin ($e) → fallback a troceo");
+      return _sendSplitFallback(to, message);
     }
-    if (ok < parts.length) {
-      _logSentinel("SYLVIA SMS: ⚠️ enviadas $ok/${parts.length} piezas a $to");
-    }
-    return ok > 0;
   }
 
   Future<void> _sendLiveTrackingSMS({bool isCheckin = false}) async {
@@ -530,10 +551,7 @@ void onStart(ServiceInstance service) async {
         pos = await Geolocator.getLastKnownPosition();
       }
       if (pos != null) {
-        msgBody += "\nMaps: https://maps.google.com/?q=${pos.latitude.toStringAsFixed(6)},${pos.longitude.toStringAsFixed(6)}";
-        if (!isCheckin) {
-          msgBody += "\nOSM: https://www.openstreetmap.org/?mlat=${pos.latitude.toStringAsFixed(6)}&mlon=${pos.longitude.toStringAsFixed(6)}";
-        }
+        msgBody += "\n${geoLinks(pos.latitude, pos.longitude)}";
         msgBody += "\n\n🔋Bat: $batteryLevel% | 📡Alt: ${pos.altitude.toStringAsFixed(0)}m | 🎯Acc: ${pos.accuracy.toStringAsFixed(0)}m";
       } else {
         msgBody += "\n(No GPS)\n\n🔋Bat: $batteryLevel%";
@@ -749,10 +767,10 @@ void onStart(ServiceInstance service) async {
         final String ageNote = (posIsStale || fixAgeSec > 90)
             ? " | ${(fixAgeSec / 60).round()}min"
             : "";
-        // Crítico primero: Maps con coordenadas justo tras la cabecera.
-        msgBody += "\nMaps: https://maps.google.com/?q=${sosPos.latitude.toStringAsFixed(6)},${sosPos.longitude.toStringAsFixed(6)}";
+        // La nota del usuario justo bajo la cabecera (se lee primero); después
+        // el bloque de ubicación (geo: + Google + OSM) y la línea técnica.
         msgBody += "\n$note";
-        msgBody += "\nOSM: https://www.openstreetmap.org/?mlat=${sosPos.latitude.toStringAsFixed(6)}&mlon=${sosPos.longitude.toStringAsFixed(6)}";
+        msgBody += "\n${geoLinks(sosPos.latitude, sosPos.longitude)}";
         msgBody += "\nBat: $batteryLevel% | Alt: ${sosPos.altitude.toStringAsFixed(0)}m | Acc: ${sosPos.accuracy.toStringAsFixed(0)}m$ageNote";
       } else {
         msgBody += "\n$note";
@@ -848,9 +866,8 @@ void onStart(ServiceInstance service) async {
         await p.setInt('beacon_count', count + 1);
         await p.setBool('beacon_origin_pending', false);
         final header = _texts['smsBeaconHeader'] ??
-            '📍 OKSIGENIA SOS — automatic follow-up to my emergency alert (this is NOT a new alarm). My updated location:';
-        String msg = "$header\nMaps: https://maps.google.com/?q=${fp.latitude.toStringAsFixed(6)},${fp.longitude.toStringAsFixed(6)}";
-        msg += "\nOSM: https://www.openstreetmap.org/?mlat=${fp.latitude.toStringAsFixed(6)}&mlon=${fp.longitude.toStringAsFixed(6)}";
+            'OKSIGENIA SOS - follow-up (NOT a new alarm):';
+        String msg = "$header\n${geoLinks(fp.latitude, fp.longitude)}";
         if (_recipients.isEmpty) {
           _recipients = p.getStringList(PreferencesService.keyContacts) ?? [];
           if (_recipients.isEmpty) return;
@@ -895,11 +912,10 @@ void onStart(ServiceInstance service) async {
       // confundir un aviso de movimiento con una nueva alarma SOS (feedback
       // real de campo 2026-06-13: la contacto no sabía si los "moved" eran SOS).
       final header = _texts['smsBeaconHeader'] ??
-          '📍 OKSIGENIA SOS — automatic follow-up to my emergency alert (this is NOT a new alarm). My updated location:';
-      final distSuffix = _texts['smsBeaconDistance'] ?? 'from the point where the SOS was sent.';
+          'OKSIGENIA SOS - follow-up (NOT a new alarm):';
+      final distSuffix = _texts['smsBeaconDistance'] ?? 'from the SOS point.';
       String msg = "$header\n${totalDist.toStringAsFixed(0)} m $distSuffix";
-      msg += "\nMaps: https://maps.google.com/?q=${pos.latitude.toStringAsFixed(6)},${pos.longitude.toStringAsFixed(6)}";
-      msg += "\nOSM: https://www.openstreetmap.org/?mlat=${pos.latitude.toStringAsFixed(6)}&mlon=${pos.longitude.toStringAsFixed(6)}";
+      msg += "\n${geoLinks(pos.latitude, pos.longitude)}";
 
       if (_recipients.isEmpty) {
         _recipients = p.getStringList(PreferencesService.keyContacts) ?? [];
